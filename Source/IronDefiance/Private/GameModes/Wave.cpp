@@ -103,7 +103,7 @@ void AWave::OnEnemyDefeated()
 	else
 	{
 		//Go to the next round
-		if (EnemyRemaining == 0)
+		if (EnemyRemaining <= 0)
 		{
 			this->EnterTransition();
 		}
