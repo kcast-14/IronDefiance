@@ -1,5 +1,6 @@
 #include "Spawner/Spawner.h"
 #include "Components/CapsuleComponent.h"
+#include "GameModes/Wave.h"
 #include "Enemy/Enemy.h"
 
 
@@ -64,6 +65,7 @@ void ASpawner::SpawnEnemy()
 		if (SpawnedEnemy != nullptr)
 		{
 			EnemyQueue.RemoveAt(0);
+			PassPtrToEnemyClass(*SpawnedEnemy);
 		}
 	}
 }
@@ -81,6 +83,20 @@ void ASpawner::AddEnemyToQueue(const TSubclassOf<AEnemy>& Enemy)
 	if(!OverlappingActors.IsValidIndex(0))
 	{
 		SpawnEnemy();
+	}
+}
+
+void ASpawner::SetWavePtr(AWave* WavePtr)
+{
+	m_WavePtr = WavePtr;
+}
+
+void ASpawner::PassPtrToEnemyClass(AEnemy& Enemy)
+{
+	//Just passing this along and will probably change to an assert
+	if (m_WavePtr)
+	{
+		Enemy.SetWavePointer(m_WavePtr);
 	}
 }
 

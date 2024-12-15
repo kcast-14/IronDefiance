@@ -38,7 +38,11 @@ void AWave::StartWave()
 			TSubclassOf<AEnemy> NewEnemy = this->GetEnemyFromPool();
 			if (NewEnemy != nullptr)
 			{
+				// Delano: In order to call OnEnemyDefeated in the Enemy class we need a Ref/Ptr to the wave class,
+				// and the spawner will be used to pass that Ptr onto the Enemy class since it already acts as a manager/factory
+				SelectedSpawner->SetWavePtr(this);
 				SelectedSpawner->AddEnemyToQueue(NewEnemy);
+				
 			}
 		}
 	}
