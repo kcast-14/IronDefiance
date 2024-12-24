@@ -1,4 +1,6 @@
-#include "GameModes/Wave.h"
+#include "Actors/Wave.h"
+#include "GameInstance/IDGameInstance.h"
+#include "Controllers/IDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spawner/Spawner.h"
 #include "Enemy/Enemy.h"
@@ -11,6 +13,7 @@ AWave::AWave()
 	EnemyRemaining = 0;
 	TransitionPeriod = 5.0f;
 	this->GetSpawners();
+
 }
 
 void AWave::GetSpawners()
@@ -22,6 +25,9 @@ void AWave::GetSpawners()
 void AWave::StartWave()
 {
 	this->BuildEnemyPool();
+
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->SetPoolSize(EnemyMaxCount);
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->MakeHealthBarWidgets();
 
 	//The amount of enemies in the field during a round will always be based on EnemyMaxCount
 	//EnemyMaxCount can be changed to maximize the difficult of the rounds
@@ -38,14 +44,29 @@ void AWave::StartWave()
 			TSubclassOf<AEnemy> NewEnemy = this->GetEnemyFromPool();
 			if (NewEnemy != nullptr)
 			{
-				// Delano: In order to call OnEnemyDefeated in the Enemy class we need a Ref/Ptr to the wave class,
-				// and the spawner will be used to pass that Ptr onto the Enemy class since it already acts as a manager/factory
-				SelectedSpawner->SetWavePtr(this);
 				SelectedSpawner->AddEnemyToQueue(NewEnemy);
 				
 			}
 		}
 	}
+
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->RemoveWaveTransition();
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
+}
+
+// Added: Delano Wilcox
+void AWave::BeginPlay()
+{
+	Super::BeginPlay();
+	GetGameInstance<UIDGameInstance>()->SetWavePtr(this); 
+
+	// We have to use these header guards because UE constructs objects in a different order in a shipping build 
+	// So if we're packaging a game to ship, this class doesn't get called until AFTER the player controller has been constructed.
+	// While in Editor, the actors in a level will be constructed first therefore we won't have a valid instance of Player Controller yet
+#if UE_BUILD_SHIPPING
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->DisplayWaveTransition();
+	EnterTransition();
+#endif
 }
 
 void AWave::EndGame()
@@ -110,6 +131,8 @@ void AWave::OnEnemyDefeated()
 		if (EnemyRemaining <= 0)
 		{
 			this->EnterTransition();
+			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
+			GetWorld()->GetFirstLocalPlayerFromController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
 		}
 	}
 }

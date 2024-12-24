@@ -3,3 +3,15 @@
 
 #include "Controllers/IDAIController.h"
 
+void AIDAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
+void AIDAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Pawns/FPSPawn.h"
 #include "IDEnums.h"
 #include "IDStructs.h"
 #include "CharacterBase.generated.h"
@@ -13,12 +14,10 @@ class AEnemy;
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
-class UInputAction;
-class UInputMappingContext;
 class USpringArmComponent;
 class AAIController;
 class AProjectileBase;
-struct FInputActionValue;
+
 
 UCLASS()
 class IRONDEFIANCE_API ACharacterBase : public ACharacter
@@ -40,80 +39,86 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//The following functions should ONLY be called if the Actor is being controlled by the player
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Pause(const FInputActionValue& Value);
-	void SwitchCameraMode(const FInputActionValue& Value);
-	void Zoom(const FInputActionValue& Value);
-	void Select(const FInputActionValue& Value);
-
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-	float CalculateDamage(float BaseDamage, AProjectileBase* Projectile);
-	float CalculateResistance();
+	virtual float CalculateDamage(float BaseDamage, AProjectileBase* Projectile);
+	virtual float CalculateResistance();
 
-	void Fire();
-	void Die();
+	virtual void Fire();
+	virtual void Die();
 
-	bool IsDead();
+	virtual bool IsDead();
+
+	virtual void PlaceTank();
+
+	//Inlines
+
+	FORCEINLINE virtual UCameraComponent* GetCameraComponent() { return m_CameraComponent; }
+
+	FORCEINLINE virtual USpringArmComponent* GetSpringArmComponent() { return m_SpringArmComponent; }
+
+	FORCEINLINE virtual AFPSPawn* GetFPSPawn() { return m_FPSPawn; }
+
+	FORCEINLINE virtual ECameraMode GetCameraMode() { return m_CameraMode; }
+
+	FORCEINLINE virtual void SetCameraMode(ECameraMode Mode) { m_CameraMode = Mode; }
+
+	FORCEINLINE virtual float GetCameraSpeed() { return m_CameraSpeed; }
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* m_CameraComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* m_FirstPersonCameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* m_SpringArmComponent;
 
 
 private:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Stats", meta = (AllowPrivateAccess = "true"))
-	float m_CurrentHealth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Stats", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
 	FTankStats m_Stats;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* m_MappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Health"))
+	float m_CurrentHealth = 0.f;
 
-	//Action Mapping Variables
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_MoveAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_TurnAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_PauseAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_SwitchCameraModeAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_ZoomAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* m_SelectAction;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Armor Piercing Rounds"))
+	float m_CurrentAPRounds = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current APCR Rounds"))
+	float m_CurrentApcrRounds = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Heat Rounds"))
+	float m_CurrentHeatRounds = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Explosive Rounds"))
+	float m_CurrentExplosiveRounds = 0.f;
 
-	//Which type of Tank should be places
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	AActor* m_TankToPlace = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
-	AAIController* m_AIController;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
+	AAIController* m_AIController = nullptr;
 
-	AEnemy* m_CombatTarget;
+	AEnemy* m_CombatTarget = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Combat | Projectile", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))
 	TSubclassOf<AProjectileBase> m_ProjectileClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	bool bHasValidTarget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Has Valid Target?"))
+	bool bHasValidTarget = false;
 
-	AProjectileBase* m_Projectile;
+	AProjectileBase* m_Projectile = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
 	ETankType m_TankType = ETankType::DEFAULT_MAX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
+	ECameraMode m_CameraMode = ECameraMode::CM_ThirdPerson;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "FPS Pawn Class"))
+	TSubclassOf<AFPSPawn> m_FPSCamPawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Speed"))
+	float m_CameraSpeed = 10.f;
+
+	UPROPERTY()
+	AFPSPawn* m_FPSPawn;
 
 
 };

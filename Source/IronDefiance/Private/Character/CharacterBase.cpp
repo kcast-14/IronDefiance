@@ -9,15 +9,13 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Engine/LocalPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Projectiles/ProjectileBase.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
+#include "Controllers/IDPlayerController.h"
 #include "AIController.h"
-#include "InputActionValue.h"
+
 
 // Sets default values
 ACharacterBase::ACharacterBase()
@@ -29,9 +27,9 @@ ACharacterBase::ACharacterBase()
 	
 	m_SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	m_SpringArmComponent->SetupAttachment(GetRootComponent());
-	m_SpringArmComponent->SetRelativeLocation({ 0.f,0.f,80.f }); // {} are the equivalent of FVector()
-	m_SpringArmComponent->SetRelativeRotation({ -60.f,0.f,0.f }); // Y,Z,X
-	m_SpringArmComponent->TargetArmLength = 3000.f;
+	m_SpringArmComponent->SetRelativeLocation({ 0.f,0.f,20.f }); // {} are the equivalent of FVector()
+	m_SpringArmComponent->SetRelativeRotation({ 320.f,0.f,0.f }); // Y,Z,X
+	m_SpringArmComponent->TargetArmLength = 200.f;
 	m_SpringArmComponent->bInheritPitch = true;
 	m_SpringArmComponent->bInheritYaw = true;
 	m_SpringArmComponent->bInheritRoll = true;
@@ -56,26 +54,16 @@ ACharacterBase::ACharacterBase()
 	GetCharacterMovement()->MaxFlySpeed = 1000.f;
 	GetCharacterMovement()->BrakingDecelerationFlying = 1000.f;
 
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
 }
 
 // Called when the game starts or when spawned
 void ACharacterBase::BeginPlay()
 {
-	Super::BeginPlay();
-
-	//Temp Because we're probably going to end up writing our own controller 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
-
-	if (Controller)
-	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-
-		if (Subsystem)
-		{
-			Subsystem->AddMappingContext(m_MappingContext, 0);
-		}
-	}
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame
@@ -88,74 +76,14 @@ void ACharacterBase::Tick(float DeltaTime)
 // Called to bind functionality to input
 void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	//Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	
+	FTransform SpawnTransform = GetActorTransform();
 
-	if (EnhancedInputComponent)
-	{
-		//I know we don't have jumping, but this is left here until I know for sure we don't need it.
-		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		EnhancedInputComponent->BindAction(m_MoveAction, ETriggerEvent::Triggered, this, &ACharacterBase::Move);
-		EnhancedInputComponent->BindAction(m_LookAction, ETriggerEvent::Triggered, this, &ACharacterBase::Look);
-		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &ACharacterBase::Pause);
-		EnhancedInputComponent->BindAction(m_SwitchCameraModeAction, ETriggerEvent::Triggered, this, &ACharacterBase::SwitchCameraMode);
-		EnhancedInputComponent->BindAction(m_ZoomAction, ETriggerEvent::Triggered, this, &ACharacterBase::Zoom);
-		EnhancedInputComponent->BindAction(m_SelectAction, ETriggerEvent::Triggered, this, &ACharacterBase::Select); //Name is subject to change
-
-	}
-
-}
-
-void ACharacterBase::Move(const FInputActionValue& Value)
-{
-	//This should never be nullptr and if it is we have an issue
-	check(Controller); 
-
-	FVector2D MoveVector = Value.Get<FVector2D>();
-
-	AddMovementInput(GetActorForwardVector(), MoveVector.Y);
-	AddMovementInput(GetActorRightVector(), MoveVector.X);
-}
-
-void ACharacterBase::Look(const FInputActionValue& Value)
-{
-	check(Controller);
-	FVector2D LookVector = Value.Get<FVector2D>();
-
-	AddControllerYawInput(LookVector.X);
-	AddControllerPitchInput(LookVector.Y);
-}
-
-
-void ACharacterBase::Pause(const FInputActionValue& Value)
-{
-	//Call PlayerController Here and Display Pause Menu
-}
-
-void ACharacterBase::SwitchCameraMode(const FInputActionValue& Value)
-{
-	//Switch Camera Modes here
-}
-
-void ACharacterBase::Zoom(const FInputActionValue& Value)
-{
-	// Move Camera Closer
-
-	float ZoomValue = Value.Get<float>();
-	FVector CameraLocation = m_CameraComponent->GetRelativeLocation();
-	CameraLocation.X *= ZoomValue;
-
-	//Probably don't need this but including it anyway for later testing.
-	m_CameraComponent->SetRelativeLocation(CameraLocation);
+	m_FPSPawn = GetWorld()->SpawnActor<AFPSPawn>(m_FPSCamPawn, SpawnTransform);
 	
 
-}
-
-void ACharacterBase::Select(const FInputActionValue& Value)
-{
 
 }
 
@@ -326,5 +254,9 @@ void ACharacterBase::Die()
 bool ACharacterBase::IsDead()
 {
 	return false;
+}
+
+void ACharacterBase::PlaceTank()
+{
 }
 

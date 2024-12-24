@@ -1,27 +1,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/Actor.h"
 #include "Wave.generated.h"
 
 class AEnemy;
 
 UCLASS()
-class IRONDEFIANCE_API AWave : public AGameModeBase
+class IRONDEFIANCE_API AWave : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	AWave();
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave Information")
 	int WaveNumber;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave Information")
 	int EnemyRemaining;
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave Information")
 	TMap<TSubclassOf<AEnemy>, int> EnemyPool;
 	UPROPERTY(BlueprintReadOnly)
 	FTimerHandle TransitionTimer;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wave Information");
 	float TransitionPeriod;
 
 	UFUNCTION(BlueprintCallable)
@@ -32,6 +32,7 @@ public:
 protected:
 	void GetSpawners();
 	void StartWave();
+	virtual void BeginPlay() override;
 	void EndGame();
 	void EnterTransition();
 	void BuildEnemyPool();
@@ -39,10 +40,12 @@ protected:
 	TSubclassOf<AEnemy> GetEnemyFromPool() const;
 	
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave Information")
 	int EnemyMaxCount;
 
 private:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Wave Information")
 	TArray<AActor*> Spawners;
+
+	friend class AIDPlayerController;
 };

@@ -1,9 +1,11 @@
 #include "Enemy/Enemy.h"
 #include "TimerManager.h"
-#include "GameModes/Wave.h"
-#include "AIController.h"
+#include "Controllers/IDPlayerController.h"
+#include "GameInstance/IDGameInstance.h"
+#include "Actors/Wave.h"
 #include "Projectiles/ProjectileBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "AIController.h"
 
 AEnemy::AEnemy()
 {
@@ -19,6 +21,8 @@ AEnemy::AEnemy()
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	m_WavePtr = GetGameInstance<UIDGameInstance>()->GetWavePtr();
+	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->AddEnemyLocation(this, GetActorLocation());
 }
 
 void AEnemy::Tick(float DeltaTime)
@@ -204,6 +208,8 @@ void AEnemy::Die()
 	// Delano: We want to crash here as ALL enemy classes should have a pointer to the wave class in them and it should be getting set after it's spawned
 	check(m_WavePtr);
 	m_WavePtr->OnEnemyDefeated();
+
+	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->RemoveEnemyLocation(this);
 }
 
 /**

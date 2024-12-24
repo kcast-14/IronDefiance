@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
-#include "IDGameState.generated.h"
+#include "GameFramework/GameModeBase.h"
+#include "IDGameModeBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class IRONDEFIANCE_API AIDGameState : public AGameStateBase
+class IRONDEFIANCE_API AIDGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	

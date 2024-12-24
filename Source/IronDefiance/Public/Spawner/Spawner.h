@@ -19,8 +19,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void SpawnEnemy();
 	void AddEnemyToQueue(const TSubclassOf<AEnemy>& Enemy);
-
-	void SetWavePtr(AWave* WavePtr);
 	
 	UPROPERTY(BlueprintReadWrite)
 	float SpawnStartDelay;
@@ -29,12 +27,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
-	void PassPtrToEnemyClass(AEnemy& Enemy);
 
 private:
 	UCapsuleComponent* Capsule;
 	FTimerHandle SpawnTimerHandle;
 	TArray<TSubclassOf<AEnemy>> EnemyQueue; 
-
-	AWave* m_WavePtr;
 };

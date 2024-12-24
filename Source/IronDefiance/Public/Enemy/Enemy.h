@@ -38,29 +38,29 @@ protected:
 
 private:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
 	AAIController* m_AIController;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Combat Target"))
 	ACharacterBase* m_CombatTarget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Stat Values"))
 	FTankStats m_Stats;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnemyStats", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Health"))
 	float m_CurrentHealth;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EnemyInfo", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "EnemyInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pointer To Wave Class"))
 	AWave* m_WavePtr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Combat | Projectile", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))
 	TSubclassOf<AProjectileBase> m_ProjectileClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Has Valid Target?"))
 	bool bHasValidTarget;
 
 	AProjectileBase* m_Projectile;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
 	ETankType m_TankType = ETankType::DEFAULT_MAX;
 };

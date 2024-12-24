@@ -24,6 +24,7 @@ AProjectileBase::AProjectileBase()
 	CollisionComponent->InitSphereRadius(15.f);
 	RootComponent = CollisionComponent;
 	CollisionComponent->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
+	CollisionComponent->SetNotifyRigidBodyCollision(true);
 
 
 
