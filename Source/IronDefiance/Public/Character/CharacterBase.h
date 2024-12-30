@@ -11,12 +11,14 @@
 
 class AAIController;
 class AEnemy;
-class UInputComponent;
-class USkeletalMeshComponent;
-class UCameraComponent;
-class USpringArmComponent;
 class AAIController;
 class AProjectileBase;
+class UCameraComponent;
+class UInputComponent;
+class USkeletalMeshComponent;
+class USphereComponent;
+class USpringArmComponent;
+class UParticleSystem;
 
 
 UCLASS()
@@ -47,9 +49,15 @@ public:
 	virtual void Fire();
 	virtual void Die();
 
+	UFUNCTION()
+	virtual void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	virtual bool IsDead();
 
-	virtual void PlaceTank();
+	UFUNCTION(BlueprintCallable)
+	virtual void ApplyUpgrade(float Value, EUpgradeType Type = EUpgradeType::DEFAULT_MAX);
 
 	//Inlines
 
@@ -71,9 +79,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* m_FirstPersonCameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* m_CombatSphere;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* m_SpringArmComponent;
 
 
+private:
+
+	void RemoveCombatTarget(AEnemy* Enemy);
+
+	void SwitchCombatTargets();
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
@@ -91,9 +106,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Explosive Rounds"))
 	float m_CurrentExplosiveRounds = 0.f;
 
+	bool bOverlappingCombatSphere = false;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
 	AAIController* m_AIController = nullptr;
+	
+	TArray<AEnemy*> m_TargetsInRange;
 
 	AEnemy* m_CombatTarget = nullptr;
 
@@ -111,6 +130,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
 	ECameraMode m_CameraMode = ECameraMode::CM_ThirdPerson;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Movement Status"))
+	EMovementStatus m_MovementStatus = EMovementStatus::DEFAULT_MAX;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "FPS Pawn Class"))
 	TSubclassOf<AFPSPawn> m_FPSCamPawn;
 
@@ -119,6 +141,9 @@ private:
 
 	UPROPERTY()
 	AFPSPawn* m_FPSPawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particles", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Upgrade Particles"))
+	UParticleSystem* m_UpgradeParticles;
 
 
 };

@@ -15,7 +15,7 @@ class IRONDEFIANCE_API AIDAIController : public AAIController
 	GENERATED_BODY()
 
 public:
-
+	AIDAIController(const FObjectInitializer& ObjectInitializer);
 
 protected:
 

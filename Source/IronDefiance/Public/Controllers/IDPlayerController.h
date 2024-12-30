@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "IDEnums.h"
 #include "IDPlayerController.generated.h"
 
 /**
@@ -163,11 +164,20 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void ToggleMainMenu();
+
+	//TODO: Determine if I really need these
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	void EnterSniperMode();
 
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	void ExitSniperMode();
+
+	//There is another Blueprint Callable function like this in ACharacterBase however,
+	//we will only keep one of these, and that will be determined by which workflow is easiest.
+	//For now both of them are here and we shall experiement with them in the UI later
+	UFUNCTION(BlueprintCallable, Category = "Gameplay|Upgrade")
+	void UpgradeTank(ACharacterBase* TankToUpgrade, float Value, EUpgradeType Type = EUpgradeType::DEFAULT_MAX);
+
 
 
 	UFUNCTION()
@@ -186,6 +196,7 @@ public:
 	bool IsHittingEnemy(AActor* Actor);
 
 	bool IsHittingTankOrEnemy(AActor* Actor);
+
 
 public:
 
@@ -241,5 +252,9 @@ private:
 
 		UPROPERTY()
 		int m_CurrentControlledTank = 0;
+
+private:
+
+	void PlaceTank(FVector Location, FVector Direction);
 
 };

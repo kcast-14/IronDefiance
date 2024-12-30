@@ -56,6 +56,8 @@ public:
 
 	EAmmoType GetAmmoType() { return m_AmmoType; }
 
+	void AddDamageUpgrade(float DamageValue) { m_Damage += DamageValue; }
+
 	//Called when Projectile Hit's Something
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
@@ -68,11 +70,11 @@ private:
 	TArray<FVector> m_ProjectileLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Instigator"))
-	AController* m_FireInstigator;
+	AController* m_FireInstigator = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Base Damage"))
-	float m_Damage;
+	float m_Damage = 0.f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
-	AAIController* m_AIController;
+	AAIController* m_AIController = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Damage Type Class"))
 	TSubclassOf<UDamageType> m_DamageTypeClass;
 

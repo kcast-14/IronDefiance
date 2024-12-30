@@ -1,21 +1,97 @@
 #include "Enemy/Enemy.h"
+#include "Character/CharacterBase.h"
 #include "TimerManager.h"
 #include "Controllers/IDPlayerController.h"
+#include "Controllers/IDAIController.h"
+#include "Components/SphereComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "GameInstance/IDGameInstance.h"
 #include "Actors/Wave.h"
 #include "Projectiles/ProjectileBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "AIController.h"
+
+
+
+/**
+* Brought to you in part by De'Lano Wilcox and Nath
+*/
 
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	m_AIController = Cast<AAIController>(GetController());
+	m_AIController = Cast<AIDAIController>(GetController());
 
 	m_Stats.MaxHealth = 100.f;
 
 	m_CurrentHealth = m_Stats.MaxHealth;
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
+	m_CombatSphere->SetupAttachment(GetRootComponent());
+	m_CombatSphere->InitSphereRadius(m_Stats.Range);
+}
+
+void AEnemy::MoveToTarget(AActor* Target)
+{
+	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalActor(Target);
+	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
+
+	FNavPathSharedPtr NavPath;
+	m_CurrentMoveRequest = MoveRequest;
+	FPathFollowingRequestResult Result;
+
+	Result = m_AIController->MoveTo(MoveRequest, &NavPath);
+
+	/** Here we'll probably do something with the request result, or perhaps we'll have to make a custom PathFollowingComponent in order to account for this:
+	* Allow for player-placed tanks to block paths partially, redirecting enemies to follow different routes. 
+	* Implement logic that prompts enemies to attack the blocking tank if it completely obstructs their path.
+	*/
+
+	if (NavPath.Get()->IsPartial()) //If it's partial then there's probably something blocking it's path
+	{
+		//Figure out what's blocking it's path, then either attack or try to go around depending on whether or not it can make a path around.
+	}
+
+}
+
+bool AEnemy::ShouldAttack()
+{
+	return false;
+
+	//if (bPathCompletelyBlocked)
+	//{
+	//	return true;
+	//}
+}
+
+bool AEnemy::CanHitTarget()
+{
+	float CastLength = m_Stats.Range;
+
+	FHitResult Result;
+
+	FVector StartLocation;
+	FRotator Rotation;
+	FVector Direction = Rotation.Vector();
+
+	FVector EndLocation = StartLocation + (Direction * CastLength);
+
+	FCollisionQueryParams CollisionParams;
+
+	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
+	{
+		if (Cast<ACharacterBase>(Result.GetActor()))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void AEnemy::BeginPlay()
@@ -23,11 +99,25 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 	m_WavePtr = GetGameInstance<UIDGameInstance>()->GetWavePtr();
 	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->AddEnemyLocation(this, GetActorLocation());
+
+	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnCombatOverlapBegin);
+	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemy::OnCombatOverlapEnd);
+
+	m_MovementStatus = EMovementStatus::MS_Idle;
+
+	check(m_TargetActor);
+	m_Target = Cast<AActor>(m_TargetActor->GetDefaultObject());
+	MoveToTarget(m_Target);
 }
 
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (ShouldAttack())
+	{
+		Attack();
+	}
 }
 
 void AEnemy::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -83,6 +173,26 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 
 		return ModDamage;
 	}
+}
+
+void AEnemy::Attack()
+{
+	if (CanHitTarget())
+	{
+		Fire();
+	}
+	else
+	{
+		if (false) //See if distance to target is less than acceptance radius
+		{
+			//Interpolate to Target Tank
+		}
+		else
+		{
+			//Move To Tank
+		}
+	}
+
 }
 
 /**
@@ -218,6 +328,29 @@ void AEnemy::Die()
 void AEnemy::SetWavePointer(AWave* Ref)
 {
 	m_WavePtr = Ref;
+}
+
+void AEnemy::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	ACharacterBase* Enemy = Cast<ACharacterBase>(OtherActor);
+	if (Enemy)
+	{
+		if (m_CombatTarget == nullptr)
+		{
+			m_CombatTarget = Enemy;
+		}
+		//We could potentially add some logic here for the tank to try and choose between a target, or run (Fight or Flight) if possible.
+	}
+}
+
+void AEnemy::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	ACharacterBase* Enemy = Cast<ACharacterBase>(OtherActor);
+
+	if (Enemy)
+	{
+		m_CombatTarget = nullptr;
+	}
 }
 
 

@@ -55,6 +55,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual AActor* PlaceTank(FVector WorldLocation, FVector WorldDirection);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	virtual void SetTankToPlace(ACharacterBase* Tank) { m_TankToPlace = Tank; }
+
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Is Piloting a Tank?"))

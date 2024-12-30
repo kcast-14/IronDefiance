@@ -4,12 +4,15 @@
 #include "GameFramework/Character.h"
 #include "IDEnums.h"
 #include "IDStructs.h"
+#include "AITypes.h"
 #include "Enemy.generated.h"
 
 class ACharacterBase;
-class AAIController;
+class AIDAIController;
 class AProjectileBase;
 class AWave;
+class USphereComponent;
+//Why wouldn't it let me forward declare a struct???
 
 UCLASS()
 class IRONDEFIANCE_API AEnemy : public ACharacter
@@ -23,15 +26,32 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	void Attack();
+
+	void SetWavePointer(AWave* Ptr);
+
+	void SetMovementStatus(EMovementStatus Status) { m_MovementStatus = Status; }
+
+	UFUNCTION()
+	virtual void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+private:
+
 	float CalculateDamage(float BaseDamage, AProjectileBase* Projectile);
 
 	float CalculateResistance();
 
 	void Fire();
-
+	
 	void Die();
 
-	void SetWavePointer(AWave* Ptr);
+	void MoveToTarget(AActor* Target);
+
+	bool ShouldAttack();
+
+	bool CanHitTarget();
 
 protected:
 	virtual void BeginPlay() override;
@@ -39,10 +59,16 @@ protected:
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
-	AAIController* m_AIController;
+	AIDAIController* m_AIController;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* m_CombatSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Combat Target"))
 	ACharacterBase* m_CombatTarget;
+
+	bool bCanAttack = false;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Stat Values"))
 	FTankStats m_Stats;
@@ -63,4 +89,17 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
 	ETankType m_TankType = ETankType::DEFAULT_MAX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movemnt", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Movement Status"))
+	EMovementStatus m_MovementStatus = EMovementStatus::DEFAULT_MAX;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movemnt", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Acceptance Radius"))
+	float m_AcceptanceRadius = 10.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Target Actor"))
+	TSubclassOf<AActor> m_TargetActor;
+
+	AActor* m_Target;
+
+	FAIMoveRequest m_CurrentMoveRequest;
 };

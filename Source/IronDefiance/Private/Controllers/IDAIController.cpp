@@ -2,6 +2,13 @@
 
 
 #include "Controllers/IDAIController.h"
+#include "Navigation/PathFollowingComponent.h"
+
+AIDAIController::AIDAIController(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer.SetDefaultSubobjectClass<UPathFollowingComponent>(TEXT("PathFollowingComponent")))
+{
+
+}
 
 void AIDAIController::BeginPlay()
 {

@@ -9,6 +9,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "Enemy/Enemy.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -49,6 +51,10 @@ ACharacterBase::ACharacterBase()
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
+	m_CombatSphere->SetupAttachment(GetRootComponent());
+	m_CombatSphere->InitSphereRadius(m_Stats.Range);
+
 	GetCharacterMovement()->MaxWalkSpeed = 100.f;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 100.f;
 	GetCharacterMovement()->MaxFlySpeed = 1000.f;
@@ -64,12 +70,20 @@ ACharacterBase::ACharacterBase()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();	
+
+	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
+	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapEnd);
 }
 
 // Called every frame
 void ACharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (m_CombatTarget)
+	{
+		Fire();
+	}
 
 }
 
@@ -226,6 +240,7 @@ void ACharacterBase::Fire()
 		SpawnParams.Instigator = GetInstigator();
 
 		m_Projectile = GetWorld()->SpawnActor<AProjectileBase>(m_ProjectileClass, BarrelSocketLocation, BarrelSocketRotation);
+		m_Projectile->AddDamageUpgrade(m_Stats.DamageAddition);
 
 		if (m_Projectile) // If the Projectile was successfully constructed and spawned
 		{
@@ -251,12 +266,76 @@ void ACharacterBase::Die()
 
 }
 
-bool ACharacterBase::IsDead()
+void ACharacterBase::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	return false;
+	AEnemy* Enemy = Cast<AEnemy>(OtherActor);
+	if (Enemy)
+	{
+		m_TargetsInRange.Add(Enemy);
+
+		if (m_CombatTarget == nullptr)
+		{
+			m_CombatTarget = Enemy;
+		}
+	}
 }
 
-void ACharacterBase::PlaceTank()
+void ACharacterBase::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	AEnemy* Enemy = Cast<AEnemy>(OtherActor);
+
+	if (Enemy)
+	{
+		RemoveCombatTarget(Enemy);
+
+		if (m_CombatTarget == Enemy)
+		{
+			SwitchCombatTargets();
+		}
+	}
+
+}
+
+bool ACharacterBase::IsDead()
+{
+	return m_MovementStatus == EMovementStatus::MS_Dead;
+}
+
+
+
+void ACharacterBase::ApplyUpgrade(float Value, EUpgradeType Type)
+{
+	m_Stats.UpgradeStat(Value, Type);
+
+	//TODO: Show some sort of visual indication of upgrade here
+	//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), m_UpgradeParticles, GetActorTransform());
+}
+
+void ACharacterBase::RemoveCombatTarget(AEnemy* Enemy)
+{
+	int32 Index = m_TargetsInRange.Find(Enemy);
+
+	m_TargetsInRange.RemoveAt(Index);
+}
+
+void ACharacterBase::SwitchCombatTargets()
+{
+	if (m_TargetsInRange.Num() > 0)
+	{
+		AEnemy** ValidEnemy = m_TargetsInRange.FindByPredicate([](const AEnemy* Element)
+			{
+				return Element;
+			});
+
+		if (*ValidEnemy)
+		{
+			m_CombatTarget = *ValidEnemy;
+
+		}
+	}
+	else
+	{
+		m_CombatTarget = nullptr;
+	}
 }
 

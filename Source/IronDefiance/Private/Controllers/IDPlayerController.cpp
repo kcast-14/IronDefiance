@@ -314,6 +314,11 @@ void AIDPlayerController::ExitSniperMode()
 	ToggleSniperHUD();
 }
 
+void AIDPlayerController::UpgradeTank(ACharacterBase* TankToUpgrade, float Value, EUpgradeType Type)
+{
+	TankToUpgrade->ApplyUpgrade(Value, Type);
+}
+
 void AIDPlayerController::SwitchTanks(const FInputActionValue& Value)
 {
 	if (m_Tanks.IsEmpty())
@@ -768,13 +773,7 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 			}
 			else
 			{
-				check(m_Operator);
-				FActorSpawnParameters SpawnParameters;
-				SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-				FTransform TankTransform;
-				TankTransform.SetLocation(WorldLocation);
-				ACharacterBase* NewTank = GetWorld()->SpawnActor<ACharacterBase>(m_Operator->GetTankToPlace()->StaticClass(), TankTransform, SpawnParameters);
-				m_Tanks.Add(NewTank);
+				PlaceTank(WorldLocation, WorldDirection);
 			}
 		}
 		else
@@ -791,6 +790,16 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 		}
 
 
+	}
+}
+
+void AIDPlayerController::PlaceTank(FVector Location, FVector Direction)
+{
+	ACharacterBase* PlacedTank = Cast<ACharacterBase>(m_Operator->PlaceTank(Location, Direction));
+
+	if (PlacedTank)
+	{
+		m_Tanks.Add(PlacedTank);
 	}
 }
 

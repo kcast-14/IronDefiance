@@ -11,6 +11,7 @@
  */
 
 class AWave;
+class UIDSaveGame;
 
 UCLASS()
 class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
@@ -19,6 +20,16 @@ class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
 	
 
 public:
+	UIDGameInstance();
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void SaveGame(int SlotToUse, bool IsAutoSaving);
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void LoadGame(FString SaveSlotName);
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	void LoadGameNoSwitch(bool bSetPosition, FString SaveSlotName);
+
+	void SwitchLevel(FName MapName);
 
 	UFUNCTION(BlueprintCallable)
 	AWave* GetWavePtr();
@@ -27,9 +38,27 @@ public:
 
 protected:
 	virtual void Init() override;
+	virtual void PostInitProperties() override;
+	void BeginPlay();
+
+	bool ParseDate(const FString& DateTimeString, FString& OutDate);
+	bool ParseTime(const FString& DateTimeString, FString& OutTime);
 
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wave", meta = (DisplayName = "Wave Instance"))
 	AWave* m_WavePtr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Save", meta = (DisplayName = "Save Array"))
+	TArray<UIDSaveGame*> m_SaveArray;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Save Game"))
+	UIDSaveGame* m_CurrentSaveGame = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Save", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Number Of Saves Slots"))
+	int m_MaxNumberOfSaveFiles = 11;
+
+	bool bIsAutosave = false;
+
+
 };

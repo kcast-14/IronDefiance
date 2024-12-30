@@ -29,3 +29,22 @@ enum class ECameraMode : uint8
 	CM_ThirdPerson UMETA(DisplayName = "Third Person View"),
 	DEFAULT_MAX UMETA(DisplayName = "Default")
 };
+
+UENUM(BlueprintType)
+enum class EUpgradeType : uint8
+{
+	UT_FireRate UMETA(DisplayName = "Fire Rate"),
+	UT_Damage UMETA(DisplayName = "Damage"),
+	UT_Health UMETA(DisplayName = "Health"),
+	DEFAULT_MAX UMETA(DisplayName = "Default")
+};
+
+UENUM(BlueprintType)
+enum class EMovementStatus : uint8
+{
+	MS_Idle UMETA(DisplayName = "Idle"),
+	MS_MoveToTarget UMETA(DisplayName = "Move To Target"),
+	MS_Attacking UMETA(DisplayName = "Attacking"),
+	MS_Dead UMETA(DisplayName = "Dead"),
+	DEFAULT_MAX UMETA(DisplayName = "Default")
+};
