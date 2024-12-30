@@ -1,0 +1,1 @@
+'make -C C:/Development/Work/rive/packages/runtime/renderer/src/shaders -j32 OUT=C:/Development/Work/rive/packages/runtime/out/windows/release/include/generated/shaders FLAGS="-p C:/Development/Work/rive/packages/runtime/renderer/dependencies/D2F85D165/ply-5c4dc94d4c6d059ec127ee1493c735963a5d2645/src --human-readable"' 
