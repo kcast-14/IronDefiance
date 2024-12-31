@@ -37,7 +37,7 @@ void UIDGameInstance::BeginPlay()
 		m_CurrentSaveGame = Cast<UIDSaveGame>(UGameplayStatics::LoadGameFromSlot({ "AutoSave" }, 0));
 		m_SaveArray[0] = m_CurrentSaveGame;
 	}
-
+	// Delano: Yeah yeah yeah I know....
 	for (int i = 1; i <= m_MaxNumberOfSaveFiles; ++i)
 	{
 		if (UGameplayStatics::DoesSaveGameExist(FString(("Slot %d"), i), 0))

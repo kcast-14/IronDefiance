@@ -8,6 +8,7 @@
 #include "Enemy.generated.h"
 
 class ACharacterBase;
+class AFOBActor;
 class AIDAIController;
 class AProjectileBase;
 class AWave;
@@ -32,10 +33,24 @@ public:
 
 	void SetMovementStatus(EMovementStatus Status) { m_MovementStatus = Status; }
 
+	bool IsPlayerBlockingPath();
+
+	bool CanNavigateAround();
+
+	void PrepareToAttack();
+
+	void MoveToTarget();
+
 	UFUNCTION()
 	virtual void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
+	FORCEINLINE ETankType GetTankType() { return m_TankType;}
+
+	FORCEINLINE EMovementStatus GetMovementStatus() { return m_MovementStatus; }
+	FORCEINLINE EMovementStatus GetMovementStatus() const { return m_MovementStatus; }
 
 private:
 
@@ -53,6 +68,10 @@ private:
 
 	bool CanHitTarget();
 
+	bool IsCombatTargetTooFar(ACharacterBase* Enemy);
+
+	void InterpToTarget();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -67,7 +86,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Combat Target"))
 	ACharacterBase* m_CombatTarget;
 
-	bool bCanAttack = false;
+	bool bShouldAttack = false;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Stat Values"))
@@ -90,16 +109,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
 	ETankType m_TankType = ETankType::DEFAULT_MAX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movemnt", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Movement Status"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Movement Status"))
 	EMovementStatus m_MovementStatus = EMovementStatus::DEFAULT_MAX;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movemnt", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Acceptance Radius"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Acceptance Radius"))
 	float m_AcceptanceRadius = 10.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Target Actor"))
-	TSubclassOf<AActor> m_TargetActor;
-
-	AActor* m_Target;
+	AFOBActor* m_Target;
 
 	FAIMoveRequest m_CurrentMoveRequest;
 };

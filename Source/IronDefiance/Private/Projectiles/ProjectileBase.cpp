@@ -42,7 +42,7 @@ AProjectileBase::AProjectileBase()
 
 	InitialLifeSpan = 3.f;
 
-	m_Damage = 10.f;
+	m_Damage = 1.f;
 
 }
 
@@ -58,6 +58,8 @@ void AProjectileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	StaticMeshComponent->SetWorldLocation(CollisionComponent->GetComponentLocation());
+
 }
 
 void AProjectileBase::FireInDirection(const FVector& ShootDirection)
@@ -72,7 +74,7 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 		// Delano: We're checking here for what it was that actually got hit, if it's not an enemy tank, or a player tank then we'll just assume it hit something in the world (it missed)
 		ACharacterBase* Char = Cast<ACharacterBase>(OtherActor); 
 		AEnemy* Enemy = Cast<AEnemy>(OtherActor);
-		if (Char)
+		if (Char && m_FireInstigator != Char->GetController())
 		{
 			UGameplayStatics::ApplyDamage(Char, m_Damage, m_FireInstigator, this, m_DamageTypeClass);
 			check(HitParticles);
@@ -81,7 +83,7 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 			return;
 		}
 
-		if (Enemy)
+		if (Enemy && m_FireInstigator != Enemy->GetController())
 		{
 			UGameplayStatics::ApplyDamage(Enemy, m_Damage, m_FireInstigator, this, m_DamageTypeClass);
 			check(HitParticles);
