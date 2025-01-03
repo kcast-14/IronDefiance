@@ -9,7 +9,11 @@
 #include "IDStructs.h"
 #include "CharacterBase.generated.h"
 
+
+
+
 class AAIController;
+class AFOBActor;
 class AEnemy;
 class AAIController;
 class AProjectileBase;
@@ -46,7 +50,8 @@ public:
 	virtual float CalculateDamage(float BaseDamage, AProjectileBase* Projectile);
 	virtual float CalculateResistance();
 
-	virtual void Fire();
+	virtual void Attack();
+
 	virtual void Die();
 
 	UFUNCTION()
@@ -55,6 +60,11 @@ public:
 	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	virtual bool IsDead();
+
+	UFUNCTION()
+	virtual void OnEnemyEnteredDangerZone(AActor* Target);
+	UFUNCTION()
+	virtual void OnEnemyExitedDangerZone(AActor* Target);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ApplyUpgrade(float Value, EUpgradeType Type = EUpgradeType::DEFAULT_MAX);
@@ -86,9 +96,20 @@ public:
 
 private:
 
+	void Fire();
+
 	void RemoveCombatTarget(AEnemy* Enemy);
 
 	void SwitchCombatTargets();
+
+	bool ShouldAttack(AEnemy* Enemy);
+
+	bool CanHitTarget();
+
+	bool IsTargetInRange(AEnemy* Enemy);
+	bool IsTargetInRange(const AEnemy* Enemy);
+
+	void InterpToTarget();
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
@@ -114,6 +135,10 @@ private:
 	
 	TArray<AEnemy*> m_TargetsInRange;
 
+	TArray<AEnemy*> m_TargetsInDangerZone;
+
+	AFOBActor* m_FOB;
+
 	AEnemy* m_CombatTarget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))
@@ -135,6 +160,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "FPS Pawn Class"))
 	TSubclassOf<AFPSPawn> m_FPSCamPawn;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Speed"))
 	float m_CameraSpeed = 10.f;

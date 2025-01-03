@@ -9,9 +9,24 @@
 /**
  * 
  */
+
+class AFOBActor;
+
 UCLASS()
 class IRONDEFIANCE_API AIDGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+
+public:
+	
+	AIDGameModeBase();
+
+	FORCEINLINE AFOBActor* GetFOBPointer() { return m_FOB; }
+
+	FORCEINLINE void SetFOBPointer(AFOBActor* FOB) { m_FOB = FOB; }
+
+private:
+
+	AFOBActor* m_FOB;
 };

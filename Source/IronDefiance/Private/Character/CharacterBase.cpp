@@ -6,6 +6,7 @@
 
 
 #include "Character/CharacterBase.h"
+#include "Actors/FOBActor.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -13,10 +14,13 @@
 #include "Enemy/Enemy.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Projectiles/ProjectileBase.h"
 #include "Controllers/IDPlayerController.h"
 #include "AIController.h"
+
 
 
 // Sets default values
@@ -71,8 +75,14 @@ void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();	
 
+	m_FOB = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
 	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapEnd);
+
+	m_FOB->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
+	m_FOB->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
+
+	m_CurrentHealth = m_Stats.MaxHealth;
 }
 
 // Called every frame
@@ -82,7 +92,11 @@ void ACharacterBase::Tick(float DeltaTime)
 
 	if (m_CombatTarget)
 	{
-		Fire();
+		Attack();
+	}
+	else
+	{
+		SwitchCombatTargets();
 	}
 
 }
@@ -223,15 +237,29 @@ float ACharacterBase::CalculateResistance()
 	}
 }
 
+void ACharacterBase::Attack()
+{
+	if (CanHitTarget())
+	{
+		InterpToTarget();
+		Fire();
+	}
+	else
+	{
+		SwitchCombatTargets();
+	}
+}
+
 void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here
-	//Fire;
 
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
-	FVector BarrelSocketLocation;
-	FRotator BarrelSocketRotation;
+	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
+	FRotator BarrelSocketRotation = GetActorRotation(); // Temp Values
+	BarrelSocketLocation += FVector(35.f, 0.f, 0.f);
+	BarrelSocketRotation.Pitch += 2.f;
 
 	if (GetWorld()) // If the world exists
 	{
@@ -245,9 +273,10 @@ void ACharacterBase::Fire()
 		if (m_Projectile) // If the Projectile was successfully constructed and spawned
 		{
 			m_Projectile->SetInstigator(GetController());
+			m_Projectile->CollisionComponent->BodyInstance.SetCollisionProfileName(FName("PlayerProjectiles"));
 			FVector LaunchDirection = BarrelSocketRotation.Vector();
 			m_Projectile->FireInDirection(LaunchDirection);
-			UGameplayStatics::SpawnEmitterAttached(m_Projectile->ProjectileParticles, m_Projectile->StaticMeshComponent, FName("ProjectileAttackSocket"), m_Projectile->StaticMeshComponent->GetRelativeLocation(), FRotator(0.f), FVector(1.f), EAttachLocation::SnapToTarget, true);
+			//UGameplayStatics::SpawnEmitterAttached(m_Projectile->ProjectileParticles, m_Projectile->StaticMeshComponent, FName("ProjectileAttackSocket"), m_Projectile->StaticMeshComponent->GetRelativeLocation(), FRotator(0.f), FVector(1.f), EAttachLocation::SnapToTarget, true);
 		}
 
 
@@ -301,6 +330,42 @@ bool ACharacterBase::IsDead()
 	return m_MovementStatus == EMovementStatus::MS_Dead;
 }
 
+void ACharacterBase::OnEnemyEnteredDangerZone(AActor* Target)
+{
+	AEnemy* Enemy = Cast<AEnemy>(Target);
+
+	if (Enemy != nullptr)
+	{
+		if (IsTargetInRange(Enemy))
+		{
+			m_CombatTarget = Enemy;
+			m_TargetsInDangerZone.Add(Enemy);
+		}
+	}
+}
+
+void ACharacterBase::OnEnemyExitedDangerZone(AActor* Target)
+{
+	AEnemy* Enemy = Cast<AEnemy>(Target);
+
+	int32 Index = m_TargetsInRange.Find(Enemy);
+	m_TargetsInDangerZone.RemoveAt(Index);
+
+	if (!m_TargetsInDangerZone.IsEmpty())
+	{
+		for (auto E : m_TargetsInDangerZone)
+		{
+			if (IsTargetInRange(E))
+			{
+				m_CombatTarget = E;
+				return;
+			}
+		}
+
+	}
+
+}
+
 
 
 void ACharacterBase::ApplyUpgrade(float Value, EUpgradeType Type)
@@ -320,22 +385,104 @@ void ACharacterBase::RemoveCombatTarget(AEnemy* Enemy)
 
 void ACharacterBase::SwitchCombatTargets()
 {
-	if (m_TargetsInRange.Num() > 0)
+	if (!m_TargetsInRange.IsEmpty())
 	{
-		AEnemy** ValidEnemy = m_TargetsInRange.FindByPredicate([](const AEnemy* Element)
+		//We do this in this manner because we don't exactly know what index will be valid next, so we find the first valid Enemy
+		AEnemy** ValidEnemy = m_TargetsInRange.FindByPredicate([&](const AEnemy* Element)
 			{
-				return Element;
+				if (IsTargetInRange(Element) && Element->GetMovementStatus() != EMovementStatus::MS_Dead)
+				{
+					return Element;
+				}
 			});
 
 		if (*ValidEnemy)
 		{
 			m_CombatTarget = *ValidEnemy;
-
 		}
 	}
 	else
 	{
 		m_CombatTarget = nullptr;
 	}
+}
+
+bool ACharacterBase::ShouldAttack(AEnemy* Enemy)
+{
+	if (Enemy != nullptr)
+	{
+		return false;
+	}
+
+	return false;
+}
+
+bool ACharacterBase::CanHitTarget()
+{
+	float CastLength = m_Stats.Range* 10.f;
+
+	FHitResult Result;
+
+	FVector StartLocation = GetActorLocation();
+	FRotator Rotation = GetActorRotation();
+	FVector Direction = GetActorForwardVector();
+
+	FVector EndLocation = StartLocation + (Direction * CastLength);
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+	//CollisionParams.AddIgnoredComponent()
+	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_GameTraceChannel6, CollisionParams))
+	{
+		AEnemy* HitEnemy = Cast<AEnemy>(Result.GetActor());
+		if (HitEnemy == m_CombatTarget)
+		{
+			return true;
+		}
+		if ( HitEnemy != nullptr) //TODO: Work with this some more to make it switch if the enemy it hit is closer than the current target
+		{
+
+			return true;
+		}
+
+	}
+
+	return false;
+}
+
+bool ACharacterBase::IsTargetInRange(AEnemy* Enemy)
+{
+	FVector TankLocation = GetActorLocation();
+	FVector EnemyLocation = Enemy->GetActorLocation();
+	double Distance = FMath::Sqrt(
+		FMath::Pow((EnemyLocation.X - TankLocation.X), 2.0) + 
+		FMath::Pow((EnemyLocation.Y - TankLocation.Y), 2.0) + 
+		FMath::Pow((EnemyLocation.Z - TankLocation.Z), 2.0)
+	);
+
+	return Distance <= m_Stats.Range;
+}
+
+bool ACharacterBase::IsTargetInRange(const AEnemy* Enemy)
+{
+	FVector TankLocation = GetActorLocation();
+	FVector EnemyLocation = Enemy->GetActorLocation();
+	double Distance = FMath::Sqrt(
+		FMath::Pow((EnemyLocation.X - TankLocation.X), 2.0) +
+		FMath::Pow((EnemyLocation.Y - TankLocation.Y), 2.0) +
+		FMath::Pow((EnemyLocation.Z - TankLocation.Z), 2.0)
+	);
+
+	return Distance <= m_Stats.Range;
+}
+
+void ACharacterBase::InterpToTarget()
+{
+	//FRotator MuzzleYaw = GetMuzzleRotationYaw(m_CombatTarget->GetActorLocation(), FName("Muzzle_L"));
+	FRotator MuzzleYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),m_CombatTarget->GetActorLocation());
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), MuzzleYaw, GetWorld()->GetDeltaSeconds(), 20.f);
+
+	SetActorRotation(InterpRotation);
+	return;
 }
 

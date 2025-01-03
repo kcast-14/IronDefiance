@@ -19,6 +19,7 @@ enum class ETankType : uint8
 	TT_M4Sherman UMETA(DisplayName = "M4 Sherman"),
 	TT_Tiger1 UMETA(DisplayName = "Tiger 1"),
 	TT_M10Wolverine UMETA(DisplayName = "M10 Wolverine"),
+	TT_EnemyVariant UMETA(DisplayName = "Enemy Variant"),
 	DEFAULT_MAX UMETA(DisplayName = "Default")
 };
 

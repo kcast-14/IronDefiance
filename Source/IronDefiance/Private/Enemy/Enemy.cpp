@@ -1,15 +1,18 @@
 #include "Enemy/Enemy.h"
+#include "Actors/Wave.h"
+#include "Actors/FOBActor.h"
 #include "Character/CharacterBase.h"
-#include "TimerManager.h"
 #include "Controllers/IDPlayerController.h"
 #include "Controllers/IDAIController.h"
 #include "Components/SphereComponent.h"
-#include "Navigation/PathFollowingComponent.h"
 #include "GameInstance/IDGameInstance.h"
-#include "Actors/Wave.h"
+#include "GameModes/IDGameModeBase.h"
 #include "Projectiles/ProjectileBase.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Kismet/KismetMathLibrary.h"
+#include "TimerManager.h"
+#include "DrawDebugHelpers.h"
 
 
 /**
@@ -19,8 +22,6 @@
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-	m_AIController = Cast<AIDAIController>(GetController());
 
 	m_Stats.MaxHealth = 100.f;
 
@@ -33,70 +34,11 @@ AEnemy::AEnemy()
 	m_CombatSphere->InitSphereRadius(m_Stats.Range);
 }
 
-void AEnemy::MoveToTarget(AActor* Target)
-{
-	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
-
-	FAIMoveRequest MoveRequest;
-	MoveRequest.SetGoalActor(Target);
-	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
-
-	FNavPathSharedPtr NavPath;
-	m_CurrentMoveRequest = MoveRequest;
-	FPathFollowingRequestResult Result;
-
-	Result = m_AIController->MoveTo(MoveRequest, &NavPath);
-
-	/** Here we'll probably do something with the request result, or perhaps we'll have to make a custom PathFollowingComponent in order to account for this:
-	* Allow for player-placed tanks to block paths partially, redirecting enemies to follow different routes. 
-	* Implement logic that prompts enemies to attack the blocking tank if it completely obstructs their path.
-	*/
-
-	if (NavPath.Get()->IsPartial()) //If it's partial then there's probably something blocking it's path
-	{
-		//Figure out what's blocking it's path, then either attack or try to go around depending on whether or not it can make a path around.
-	}
-
-}
-
-bool AEnemy::ShouldAttack()
-{
-	return false;
-
-	//if (bPathCompletelyBlocked)
-	//{
-	//	return true;
-	//}
-}
-
-bool AEnemy::CanHitTarget()
-{
-	float CastLength = m_Stats.Range;
-
-	FHitResult Result;
-
-	FVector StartLocation;
-	FRotator Rotation;
-	FVector Direction = Rotation.Vector();
-
-	FVector EndLocation = StartLocation + (Direction * CastLength);
-
-	FCollisionQueryParams CollisionParams;
-
-	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
-	{
-		if (Cast<ACharacterBase>(Result.GetActor()))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	m_AIController = Cast<AIDAIController>(GetController());
+	m_AIController->SetOwningActor<AEnemy>(this);
 	m_WavePtr = GetGameInstance<UIDGameInstance>()->GetWavePtr();
 	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->AddEnemyLocation(this, GetActorLocation());
 
@@ -105,8 +47,7 @@ void AEnemy::BeginPlay()
 
 	m_MovementStatus = EMovementStatus::MS_Idle;
 
-	check(m_TargetActor);
-	m_Target = Cast<AActor>(m_TargetActor->GetDefaultObject());
+	m_Target = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
 	MoveToTarget(m_Target);
 }
 
@@ -180,17 +121,27 @@ void AEnemy::Attack()
 	if (CanHitTarget())
 	{
 		Fire();
+
 	}
 	else
 	{
-		if (false) //See if distance to target is less than acceptance radius
+		if (m_CombatTarget != nullptr)
 		{
-			//Interpolate to Target Tank
+			if (!IsCombatTargetTooFar(m_CombatTarget)) //See if distance to target is less than acceptance radius
+			{
+				//Interpolate to Target Tank
+				InterpToTarget();
+			}
+			else
+			{
+				MoveToTarget(m_CombatTarget);
+			}
 		}
 		else
 		{
-			//Move To Tank
+			MoveToTarget(m_Target);
 		}
+
 	}
 
 }
@@ -285,8 +236,9 @@ void AEnemy::Fire()
 
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
-	FVector BarrelSocketLocation;
-	FRotator BarrelSocketRotation;
+	FVector BarrelSocketLocation = GetActorLocation();
+	FRotator BarrelSocketRotation = GetActorRotation();
+	BarrelSocketRotation.Yaw = 0.f;
 
 	if (GetWorld()) // If the world exists
 	{
@@ -299,9 +251,10 @@ void AEnemy::Fire()
 		if (m_Projectile) // If the Projectile was successfully constructed and spawned
 		{
 			m_Projectile->SetInstigator(GetController());
+			m_Projectile->CollisionComponent->BodyInstance.SetCollisionProfileName(FName("EnemyProjectiles"));
 			FVector LaunchDirection = BarrelSocketRotation.Vector();
 			m_Projectile->FireInDirection(LaunchDirection);
-			UGameplayStatics::SpawnEmitterAttached(m_Projectile->ProjectileParticles, m_Projectile->StaticMeshComponent, FName("ProjectileAttackSocket"), m_Projectile->StaticMeshComponent->GetRelativeLocation(), FRotator(0.f), FVector(1.f), EAttachLocation::SnapToTarget, true);
+			//UGameplayStatics::SpawnEmitterAttached(m_Projectile->ProjectileParticles, m_Projectile->StaticMeshComponent, FName("ProjectileAttackSocket"), m_Projectile->StaticMeshComponent->GetRelativeLocation(), FRotator(0.f), FVector(1.f), EAttachLocation::SnapToTarget, true);
 		}
 
 
@@ -313,13 +266,13 @@ void AEnemy::Fire()
 */
 void AEnemy::Die()
 {
-	Destroy();
 
 	// Delano: We want to crash here as ALL enemy classes should have a pointer to the wave class in them and it should be getting set after it's spawned
 	check(m_WavePtr);
 	m_WavePtr->OnEnemyDefeated();
 
 	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->RemoveEnemyLocation(this);
+	Destroy();
 }
 
 /**
@@ -328,6 +281,64 @@ void AEnemy::Die()
 void AEnemy::SetWavePointer(AWave* Ref)
 {
 	m_WavePtr = Ref;
+}
+
+bool AEnemy::IsPlayerBlockingPath()
+{
+	float CastLength = m_Stats.Range * 10.f;
+
+	FHitResult Result;
+
+	FVector StartLocation = GetActorLocation();
+	FRotator Rotation = GetActorRotation();
+	Rotation.Yaw = 0.f;
+	FVector Direction = GetActorForwardVector();
+
+	FVector EndLocation = StartLocation + (Direction * CastLength);
+
+	FCollisionQueryParams CollisionParams;
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Green, false, 5.f, 0U, 3.f);
+	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_GameTraceChannel5, CollisionParams))
+	{
+		if (Cast<ACharacterBase>(Result.GetActor()))
+		{
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+bool AEnemy::CanNavigateAround()
+{
+	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalActor(m_Target);
+	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
+	MoveRequest.SetAllowPartialPath(false);
+
+	FPathFindingQuery PathQuery;
+
+	m_AIController->BuildPathfindingQuery(MoveRequest, PathQuery);
+	if (PathQuery.PathInstanceToFill != nullptr)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void AEnemy::PrepareToAttack()
+{
+	bShouldAttack = true;
+	SetMovementStatus(EMovementStatus::MS_Attacking);
+}
+
+void AEnemy::MoveToTarget()
+{
+	MoveToTarget(Cast<AActor>(m_Target));
 }
 
 void AEnemy::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -351,6 +362,88 @@ void AEnemy::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		m_CombatTarget = nullptr;
 	}
+}
+
+void AEnemy::MoveToTarget(AActor* Target)
+{
+	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalActor(Target);
+	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
+	
+
+	FNavPathSharedPtr NavPath;
+	m_CurrentMoveRequest = MoveRequest;
+	FPathFollowingRequestResult Result;
+
+	Result = m_AIController->MoveTo(MoveRequest, &NavPath);
+
+
+	if (NavPath != nullptr && Result.Code.GetValue() != EPathFollowingRequestResult::Failed) //If it's partial then there's probably something blocking it's path
+	{
+		m_AIController->SetIsPathPartial(NavPath.Get()->IsPartial());
+	}
+
+}
+
+bool AEnemy::ShouldAttack()
+{
+	return bShouldAttack;
+}
+
+bool AEnemy::CanHitTarget()
+{
+	float CastLength = m_Stats.Range * 10.f;
+
+	FHitResult Result;
+
+	FVector StartLocation = GetActorLocation();
+	FRotator Rotation = GetActorRotation();
+	FVector Direction = GetActorForwardVector();
+
+	FVector EndLocation = StartLocation + (Direction * CastLength);
+
+	FCollisionQueryParams CollisionParams;
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 5.f, 0U, 3.f);
+	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_GameTraceChannel5, CollisionParams))
+	{
+		if (Cast<ACharacterBase>(Result.GetActor()))
+		{
+			if (Cast<ACharacterBase>(Result.GetActor()) != m_CombatTarget)
+			{
+				m_CombatTarget = Cast<ACharacterBase>(Result.GetActor());
+				return true;
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool AEnemy::IsCombatTargetTooFar(ACharacterBase* Enemy)
+{
+	FVector TankLocation = GetActorLocation();
+	FVector EnemyLocation = Enemy->GetActorLocation();
+	double Distance = FMath::Sqrt(
+		FMath::Pow((EnemyLocation.X - TankLocation.X), 2.0) +
+		FMath::Pow((EnemyLocation.Y - TankLocation.Y), 2.0) +
+		FMath::Pow((EnemyLocation.Z - TankLocation.Z), 2.0)
+	);
+
+	return Distance > m_AcceptanceRadius;
+}
+
+void AEnemy::InterpToTarget()
+{
+	//FRotator MuzzleYaw = GetMuzzleRotationYaw(m_CombatTarget->GetActorLocation(), FName("Muzzle_L"));
+	FRotator MuzzleYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), m_CombatTarget->GetActorLocation());
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), MuzzleYaw, GetWorld()->GetDeltaSeconds(), 20.f);
+
+	SetActorRotation(InterpRotation);
+	return;
 }
 
 
