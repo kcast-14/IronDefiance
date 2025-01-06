@@ -14,7 +14,8 @@ struct FTankStats
 	float ArmorResistance = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
 	float Range = 10.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
+	//Measured in Rounds Per Second
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats", meta=(ToolTip = "This is measured in rounds per second"))
 	float FireRate = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
 	float DamageAddition = 0.f;

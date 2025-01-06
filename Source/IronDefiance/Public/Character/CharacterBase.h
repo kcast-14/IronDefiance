@@ -9,7 +9,7 @@
 #include "IDStructs.h"
 #include "CharacterBase.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTankDestroyed, ACharacterBase*, Tank);
 
 
 class AAIController;
@@ -93,6 +93,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* m_SpringArmComponent;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnTankDestroyed m_OnTankDestoryed;
 
 private:
 
@@ -110,6 +112,8 @@ private:
 	bool IsTargetInRange(const AEnemy* Enemy);
 
 	void InterpToTarget();
+
+	void DestroyTank();
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
@@ -147,6 +151,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Has Valid Target?"))
 	bool bHasValidTarget = false;
 
+	FTimerHandle m_FireTimerHandle;
+	FTimerHandle m_DeathTimerHandle;
+
+
+
 	AProjectileBase* m_Projectile = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
@@ -170,6 +179,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particles", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Upgrade Particles"))
 	UParticleSystem* m_UpgradeParticles;
+
 
 
 };

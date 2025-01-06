@@ -46,6 +46,9 @@ public:
 	UFUNCTION()
 	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void OnTargetDestroyed(ACharacterBase* Enemy);
+
 
 	FORCEINLINE ETankType GetTankType() { return m_TankType;}
 
@@ -71,6 +74,12 @@ private:
 	bool IsCombatTargetTooFar(ACharacterBase* Enemy);
 
 	void InterpToTarget();
+
+	void InterpToGoal();
+
+	void SetCombatTarget(ACharacterBase* Enemy);
+
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -103,6 +112,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Has Valid Target?"))
 	bool bHasValidTarget;
+
+	FTimerHandle m_FireTimerHandle;
+
+
 
 	AProjectileBase* m_Projectile;
 

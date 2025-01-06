@@ -4,7 +4,10 @@
 #include "Character/CharacterBase.h"
 #include "Controllers/IDPlayerController.h"
 #include "Controllers/IDAIController.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameInstance/IDGameInstance.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Projectiles/ProjectileBase.h"
@@ -120,7 +123,10 @@ void AEnemy::Attack()
 {
 	if (CanHitTarget())
 	{
-		Fire();
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_FireTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_FireTimerHandle, this, &AEnemy::Fire, (1.f / m_Stats.FireRate), false);
+		}
 
 	}
 	else
@@ -139,7 +145,10 @@ void AEnemy::Attack()
 		}
 		else
 		{
-			MoveToTarget(m_Target);
+			if (m_AIController->IsMoveComplete())
+			{
+				MoveToTarget(m_Target);
+			}
 		}
 
 	}
@@ -237,8 +246,8 @@ void AEnemy::Fire()
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
 	FVector BarrelSocketLocation = GetActorLocation();
+	BarrelSocketLocation += FVector(GetCapsuleComponent()->GetUnscaledCapsuleRadius(), 0.f, 0.f);
 	FRotator BarrelSocketRotation = GetActorRotation();
-	BarrelSocketRotation.Yaw = 0.f;
 
 	if (GetWorld()) // If the world exists
 	{
@@ -248,8 +257,9 @@ void AEnemy::Fire()
 
 		m_Projectile = GetWorld()->SpawnActor<AProjectileBase>(m_ProjectileClass, BarrelSocketLocation, BarrelSocketRotation);
 
-		if (m_Projectile) // If the Projectile was successfully constructed and spawned
+		if (m_Projectile && m_CombatTarget) // If the Projectile was successfully constructed and spawned
 		{
+			InterpToTarget();
 			m_Projectile->SetInstigator(GetController());
 			m_Projectile->CollisionComponent->BodyInstance.SetCollisionProfileName(FName("EnemyProjectiles"));
 			FVector LaunchDirection = BarrelSocketRotation.Vector();
@@ -336,8 +346,10 @@ void AEnemy::PrepareToAttack()
 	SetMovementStatus(EMovementStatus::MS_Attacking);
 }
 
+//This version of the function is just used to resume the movement towards the FOB
 void AEnemy::MoveToTarget()
 {
+	InterpToGoal();
 	MoveToTarget(Cast<AActor>(m_Target));
 }
 
@@ -348,7 +360,7 @@ void AEnemy::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAct
 	{
 		if (m_CombatTarget == nullptr)
 		{
-			m_CombatTarget = Enemy;
+			SetCombatTarget(Enemy);
 		}
 		//We could potentially add some logic here for the tank to try and choose between a target, or run (Fight or Flight) if possible.
 	}
@@ -358,8 +370,9 @@ void AEnemy::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	ACharacterBase* Enemy = Cast<ACharacterBase>(OtherActor);
 
-	if (Enemy)
+	if (Enemy && Enemy == m_CombatTarget)
 	{
+		m_CombatTarget->m_OnTankDestoryed.RemoveDynamic(this, &AEnemy::OnTargetDestroyed);
 		m_CombatTarget = nullptr;
 	}
 }
@@ -371,6 +384,8 @@ void AEnemy::MoveToTarget(AActor* Target)
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(Target);
 	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
+	MoveRequest.SetUsePathfinding(true);
+	
 	
 
 	FNavPathSharedPtr NavPath;
@@ -383,7 +398,19 @@ void AEnemy::MoveToTarget(AActor* Target)
 	if (NavPath != nullptr && Result.Code.GetValue() != EPathFollowingRequestResult::Failed) //If it's partial then there's probably something blocking it's path
 	{
 		m_AIController->SetIsPathPartial(NavPath.Get()->IsPartial());
+		m_AIController->SetIsMoveComplete(false);
+
+		auto PathPoints = NavPath->GetPathPoints();
+
+		for (auto Points : PathPoints)
+		{
+			FVector Location = Points.Location;
+
+			UKismetSystemLibrary::DrawDebugSphere(this, Location, 25.f, 8, FLinearColor::Red, 10.f, 1.5f);
+		}
 	}
+
+
 
 }
 
@@ -412,7 +439,7 @@ bool AEnemy::CanHitTarget()
 		{
 			if (Cast<ACharacterBase>(Result.GetActor()) != m_CombatTarget)
 			{
-				m_CombatTarget = Cast<ACharacterBase>(Result.GetActor());
+				SetCombatTarget(Cast<ACharacterBase>(Result.GetActor()));
 				return true;
 			}
 
@@ -440,10 +467,42 @@ void AEnemy::InterpToTarget()
 {
 	//FRotator MuzzleYaw = GetMuzzleRotationYaw(m_CombatTarget->GetActorLocation(), FName("Muzzle_L"));
 	FRotator MuzzleYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), m_CombatTarget->GetActorLocation());
-	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), MuzzleYaw, GetWorld()->GetDeltaSeconds(), 20.f);
+	FRotator Rotation(0.f, MuzzleYaw.Yaw, 0.f);
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), Rotation, GetWorld()->GetDeltaSeconds(), 20.f);
 
 	SetActorRotation(InterpRotation);
 	return;
+}
+
+//TODO: Temp
+void AEnemy::InterpToGoal()
+{
+	//FRotator MuzzleYaw = GetMuzzleRotationYaw(m_CombatTarget->GetActorLocation(), FName("Muzzle_L"));
+	FRotator MuzzleYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), m_Target->GetActorLocation());
+	FRotator Rotation(0.f, MuzzleYaw.Yaw, 0.f);
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), Rotation, GetWorld()->GetDeltaSeconds(), 20.f);
+
+	SetActorRotation(InterpRotation);
+	return;
+}
+
+void AEnemy::SetCombatTarget(ACharacterBase* Enemy)
+{
+	m_CombatTarget = Enemy;
+	//Cheesey workaround until I can figure out how to do this properly
+	m_CombatTarget->m_OnTankDestoryed.RemoveDynamic(this, &AEnemy::OnTargetDestroyed);
+	m_CombatTarget->m_OnTankDestoryed.AddDynamic(this, &AEnemy::OnTargetDestroyed);
+}
+
+void AEnemy::OnTargetDestroyed(ACharacterBase* Enemy)
+{
+	if (m_CombatTarget == Enemy)
+	{
+		m_CombatTarget->m_OnTankDestoryed.RemoveDynamic(this, &AEnemy::OnTargetDestroyed);
+		m_CombatTarget = nullptr;
+		bShouldAttack = false;
+		MoveToTarget();
+	}
 }
 
 

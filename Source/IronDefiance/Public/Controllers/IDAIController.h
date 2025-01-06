@@ -23,6 +23,8 @@ public:
 
 	FORCEINLINE bool IsPathPartial() { return bIsPathPartial; }
 	FORCEINLINE void SetIsPathPartial(bool Partial) { bIsPathPartial = Partial; }
+	FORCEINLINE bool IsMoveComplete() { return bIsMoveComplete; }
+	FORCEINLINE void SetIsMoveComplete(bool Completed) { bIsMoveComplete = Completed; }
 
 	template<typename T>
 	T* GetOwningActor();
@@ -43,6 +45,8 @@ private:
 	bool bIsPathPartial = false;
 
 	bool bIsOwnedByEnemy = false;
+
+	bool bIsMoveComplete = false;
 
 	AActor* m_OwningActor = nullptr;
 

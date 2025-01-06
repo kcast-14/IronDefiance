@@ -242,7 +242,10 @@ void ACharacterBase::Attack()
 	if (CanHitTarget())
 	{
 		InterpToTarget();
-		Fire();
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_FireTimerHandle))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_FireTimerHandle, this, &ACharacterBase::Fire, (1.f/m_Stats.FireRate), false);
+		}
 	}
 	else
 	{
@@ -258,8 +261,7 @@ void ACharacterBase::Fire()
 
 	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
 	FRotator BarrelSocketRotation = GetActorRotation(); // Temp Values
-	BarrelSocketLocation += FVector(35.f, 0.f, 0.f);
-	BarrelSocketRotation.Pitch += 2.f;
+	BarrelSocketLocation += FVector(GetCapsuleComponent()->GetUnscaledCapsuleRadius(), 0.f, 0.f);
 
 	if (GetWorld()) // If the world exists
 	{
@@ -293,6 +295,9 @@ void ACharacterBase::Die()
 		//Do some dying stuff here
 	}
 
+	m_OnTankDestoryed.Broadcast(this); 
+	GetWorld()->GetTimerManager().SetTimer(m_DeathTimerHandle, this, &ACharacterBase::DestroyTank, 5.f, false);
+	//Destroy();
 }
 
 void ACharacterBase::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -480,9 +485,15 @@ void ACharacterBase::InterpToTarget()
 {
 	//FRotator MuzzleYaw = GetMuzzleRotationYaw(m_CombatTarget->GetActorLocation(), FName("Muzzle_L"));
 	FRotator MuzzleYaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),m_CombatTarget->GetActorLocation());
-	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), MuzzleYaw, GetWorld()->GetDeltaSeconds(), 20.f);
+	FRotator Rotation(0.f, MuzzleYaw.Yaw, 0.f);
+	FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), Rotation, GetWorld()->GetDeltaSeconds(), 20.f);
 
 	SetActorRotation(InterpRotation);
 	return;
+}
+
+void ACharacterBase::DestroyTank()
+{
+	Destroy();
 }
 
