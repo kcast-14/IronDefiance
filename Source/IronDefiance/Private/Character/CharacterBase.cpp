@@ -399,9 +399,14 @@ void ACharacterBase::SwitchCombatTargets()
 				{
 					return Element;
 				}
+				else
+				{
+					Element = nullptr;
+					return Element;
+				}
 			});
 
-		if (*ValidEnemy)
+		if (ValidEnemy != nullptr)
 		{
 			m_CombatTarget = *ValidEnemy;
 		}
