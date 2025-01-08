@@ -322,7 +322,6 @@ bool AEnemy::IsPlayerBlockingPath()
 
 bool AEnemy::CanNavigateAround()
 {
-	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
 
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(m_Target);
@@ -400,11 +399,11 @@ void AEnemy::MoveToTarget(AActor* Target)
 		m_AIController->SetIsPathPartial(NavPath.Get()->IsPartial());
 		m_AIController->SetIsMoveComplete(false);
 
-		auto PathPoints = NavPath->GetPathPoints();
+		TArray<FNavPathPoint>& PathPoints = NavPath->GetPathPoints();
 
-		for (auto Points : PathPoints)
+		for (FNavPathPoint& Points : PathPoints)
 		{
-			FVector Location = Points.Location;
+			FVector& Location = Points.Location;
 
 			UKismetSystemLibrary::DrawDebugSphere(this, Location, 25.f, 8, FLinearColor::Red, 10.f, 1.5f);
 		}
