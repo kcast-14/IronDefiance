@@ -13,6 +13,7 @@
 #include "Pawns/OperatorPawn.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "InputActionValue.h"
 
 void AIDPlayerController::DisplayHUDOverlay()
@@ -445,16 +446,20 @@ void AIDPlayerController::BeginPlay()
 
 
 	//See Wave.cpp: BeginPlay() for explaination on this
+	if (GetGameInstance<UIDGameInstance>()->GetWavePtr() != nullptr)
+	{
 #if !UE_BUILD_SHIPPING
-	DisplayWaveTransition();
-	GetGameInstance<UIDGameInstance>()->GetWavePtr()->EnterTransition();
+		DisplayWaveTransition();
+		GetGameInstance<UIDGameInstance>()->GetWavePtr()->EnterTransition();
 #endif
 
-	FInputModeUIOnly InputMode;
-	SetInputMode(InputMode);
-	bShowMouseCursor = true;
-	ToggleOperatorHUD();
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
+		bShowMouseCursor = true;
+		ToggleOperatorHUD();
+	}
 }
+
 
 void AIDPlayerController::Tick(float DeltaTime)
 {
@@ -499,6 +504,8 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_SwitchCameraModeAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchCameraMode);
 		EnhancedInputComponent->BindAction(m_ZoomAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Zoom);
 		EnhancedInputComponent->BindAction(m_SelectAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Select); //Name is subject to change
+
+		//m_PlayerMappingContext->GetMappings()[0].
 
 	}
 }
@@ -712,6 +719,8 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		ToggleOperatorHUD();
 		Possess(m_Operator);
 		m_Operator->CanPilotTank(false);
+		m_Operator->SetTankToPilot(nullptr);
+		m_CurrentControlledTank = -1;
 	}
 }
 

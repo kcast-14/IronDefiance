@@ -25,6 +25,7 @@ AFOBActor::AFOBActor()
 void AFOBActor::OnAgroOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	m_OnDangerZoneEntered.Broadcast(OtherActor);
+	DecrementHealth(100.f);
 }
 
 void AFOBActor::OnAgroOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -32,6 +33,29 @@ void AFOBActor::OnAgroOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActo
 	//I doubt they would leave once they reach the base, but if the do or perhaps if they're destroyed we should let everyone know
 	// Also I'm not sure whether enemies being destroyed would cause this delegate to be hit
 	m_OnDangerZoneExited.Broadcast(OtherActor);
+}
+
+bool AFOBActor::DecrementHealth(float Damage)
+{
+
+	if (m_Health - Damage <= 0.f)
+	{
+		m_Health = 0.f;
+		Die();
+		return true;
+	}
+	else
+	{
+		m_Health -= Damage;
+		return true;
+	}
+}
+
+void AFOBActor::Die()
+{
+	//GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleGameOverScreen();
+
+	//Display visuals and play sounds that reinforce defeat
 }
 
 // Called when the game starts or when spawned

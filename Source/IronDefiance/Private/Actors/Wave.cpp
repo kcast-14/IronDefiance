@@ -9,7 +9,9 @@ AWave::AWave()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	WaveNumber = 0;
-	EnemyMaxCount = 5;
+	m_MaxNumberOfWaves = 1;
+	m_InitialEnemyCount = 5;
+	EnemyMaxCount = 0;
 	EnemyRemaining = 0;
 	TransitionPeriod = 5.0f;
 	this->GetSpawners();
@@ -25,7 +27,7 @@ void AWave::GetSpawners()
 void AWave::StartWave()
 {
 	this->BuildEnemyPool();
-
+	EnemyMaxCount = CalculateMaxEnemyCount();
 	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->SetPoolSize(EnemyMaxCount);
 	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->MakeHealthBarWidgets();
 
@@ -69,20 +71,24 @@ void AWave::BeginPlay()
 #endif
 }
 
-void AWave::EndGame()
-{
-	//Check if win or lose
-}
-
 void AWave::EnterTransition()
 {
-	GetWorld()->GetTimerManager().SetTimer(
-		TransitionTimer,       
-		this,               
-		&AWave::NewWave,  
-		TransitionPeriod,                  
-		false            
-	);
+	if (WaveNumber++ > m_MaxNumberOfWaves)
+	{
+		Win();
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			TransitionTimer,
+			this,
+			&AWave::NewWave,
+			TransitionPeriod,
+			false
+		);
+
+	}
+
 }
 
 void AWave::BuildEnemyPool()
@@ -152,6 +158,11 @@ TSubclassOf<AEnemy> AWave::GetEnemyFromPool() const
 	return nullptr;
 }
 
+int AWave::CalculateMaxEnemyCount()
+{
+	return (int)(FMath::Sqrt((float)WaveNumber -1.f)*6.f +m_InitialEnemyCount); // Square root of the WaveNumber -1 times 6 plus 10
+}
+
 
 void AWave::NewWave()
 {
@@ -162,6 +173,13 @@ void AWave::NewWave()
 	
 	WaveNumber += 1;
 	this->StartWave();
+}
+
+void AWave::Win()
+{
+	//GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleWinScreen();
+
+	//Display visuals and play sounds that reinforce victory
 }
 
 
