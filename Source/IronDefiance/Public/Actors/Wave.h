@@ -28,12 +28,12 @@ public:
 	void OnEnemyDefeated();
 	UFUNCTION(BlueprintCallable)
 	void NewWave();
-
+	UFUNCTION()
+	void Win();
 protected:
 	void GetSpawners();
 	void StartWave();
 	virtual void BeginPlay() override;
-	void EndGame();
 	void EnterTransition();
 	void BuildEnemyPool();
 	int GetPoolSize() const;
@@ -42,6 +42,14 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave Information")
 	int EnemyMaxCount;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave Information", meta=(DisplayName="Initial Enemy Count"))
+	int m_InitialEnemyCount;
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave Information", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Number Of Waves"))
+	int m_MaxNumberOfWaves;
+private:
+	int CalculateMaxEnemyCount();
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Wave Information")

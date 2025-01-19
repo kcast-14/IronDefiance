@@ -257,6 +257,8 @@ void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here
 
+	UE_LOG(LogTemp, Warning, TEXT("%s Is Shooting!"), *GetActorLabel());
+
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
 	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
@@ -354,7 +356,11 @@ void ACharacterBase::OnEnemyExitedDangerZone(AActor* Target)
 	AEnemy* Enemy = Cast<AEnemy>(Target);
 
 	int32 Index = m_TargetsInRange.Find(Enemy);
-	m_TargetsInDangerZone.RemoveAt(Index);
+	if (Index == -1)
+	{
+		m_TargetsInDangerZone.RemoveAt(Index);
+		return;
+	}
 
 	if (!m_TargetsInDangerZone.IsEmpty())
 	{
