@@ -83,6 +83,22 @@ public:
 
 	FORCEINLINE virtual float GetCameraSpeed() { return m_CameraSpeed; }
 
+	FORCEINLINE virtual float GetCurrentHealth() { return m_CurrentHealth; }
+	FORCEINLINE virtual float GetCurrentAPRounds() { return m_CurrentAPRounds;}
+	FORCEINLINE virtual float GetCurrentApcrRounds() { return m_CurrentApcrRounds; }
+	FORCEINLINE virtual float GetCurrentExplosiveRounds() { return m_CurrentExplosiveRounds; }
+	FORCEINLINE virtual float GetCurrentHeatRounds() { return m_CurrentHeatRounds; }
+	FORCEINLINE virtual FTankStats GetStats() { return m_Stats; }
+
+
+	FORCEINLINE virtual void SetCurrentHealth(float Value) { m_CurrentHealth = Value; }
+	FORCEINLINE virtual void SetCurrentAPRounds(float Value) { m_CurrentAPRounds = Value; }
+	FORCEINLINE virtual void SetCurrentApcrRounds(float Value) { m_CurrentApcrRounds = Value; }
+	FORCEINLINE virtual void SetCurrentExplosiveRounds(float Value) { m_CurrentExplosiveRounds = Value; }
+	FORCEINLINE virtual void SetCurrentHeatRounds(float Value) { m_CurrentHeatRounds = Value; }
+	FORCEINLINE virtual void SetStats(FTankStats Stats) { m_Stats = Stats; }
+
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* m_CameraComponent;

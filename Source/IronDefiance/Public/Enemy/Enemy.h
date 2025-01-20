@@ -3,8 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "IDEnums.h"
-#include "IDStructs.h"
 #include "AITypes.h"
+#include "IDStructs.h"
 #include "Enemy.generated.h"
 
 class ACharacterBase;
@@ -14,6 +14,7 @@ class AProjectileBase;
 class AWave;
 class USphereComponent;
 //Why wouldn't it let me forward declare a struct???
+
 
 UCLASS()
 class IRONDEFIANCE_API AEnemy : public ACharacter
@@ -114,8 +115,6 @@ private:
 	bool bHasValidTarget;
 
 	FTimerHandle m_FireTimerHandle;
-
-
 
 	AProjectileBase* m_Projectile;
 

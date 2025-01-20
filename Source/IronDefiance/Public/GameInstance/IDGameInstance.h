@@ -60,5 +60,8 @@ private:
 
 	bool bIsAutosave = false;
 
+	uint32 m_Crowns = 0;
+	uint32 m_Scraps = 0;
+
 
 };

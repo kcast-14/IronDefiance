@@ -30,6 +30,9 @@ public:
 	void NewWave();
 	UFUNCTION()
 	void Win();
+
+	FORCEINLINE int GetWaveNumber() { return WaveNumber; }
+	FORCEINLINE void SetWaveNumber(int Value) { WaveNumber = Value; }
 protected:
 	void GetSpawners();
 	void StartWave();

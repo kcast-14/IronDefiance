@@ -17,7 +17,6 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
-
 /**
 * Brought to you in part by De'Lano Wilcox and Nath
 */
