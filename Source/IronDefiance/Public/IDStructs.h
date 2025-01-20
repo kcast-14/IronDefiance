@@ -61,3 +61,74 @@ struct FTankStats
 	}
 
 };
+
+USTRUCT(BlueprintType)
+struct FTankInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float CurrentHealth = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float CurrentAPRounds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float CurrentApcrRounds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float CurrentHeatRounds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float CurrentExplosiveRounds = 0.f;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FTankStats Stats;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FVector Location;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FRotator  Rotation;
+};
+
+USTRUCT(BlueprintType)
+struct FTowerInfo
+{
+	GENERATED_BODY()
+
+};
+
+//USTRUCT(BlueprintType)
+//struct FEnemyInfo
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+//	float m_CurrentHealth;
+//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+//	FTankStats Stats;
+//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+//	FVector Location;
+//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+//	FRotator  Rotation;
+//
+//};
+
+USTRUCT(BlueprintType)
+struct FSaveInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	TArray<FTankInfo> Tanks;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	TArray<FTowerInfo> Towers;
+
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	int CurrentWaveNumber;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	uint32 Crowns;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	uint32 Scraps;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FString Mapname;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGameData")
+	FString Date;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGameData")
+	FString Time;
+};

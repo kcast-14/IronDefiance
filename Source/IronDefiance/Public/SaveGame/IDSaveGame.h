@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "IDStructs.h"
 #include "IDSaveGame.generated.h"
 
 /**
@@ -22,6 +23,8 @@ public:
 	uint32 UserIndex;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Basic)
 	int SlotNumber;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Basic, meta=(DisplayName="Save Info"))
+	FSaveInfo m_SaveInfo;
 
 public:
 

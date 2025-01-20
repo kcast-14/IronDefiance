@@ -3,6 +3,8 @@
 
 #include "GameInstance/IDGameInstance.h"
 #include "SaveGame/IDSaveGame.h"
+#include "Character/CharacterBase.h"
+#include "Actors/Wave.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -57,50 +59,114 @@ AWave* UIDGameInstance::GetWavePtr()
 void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 {
 	bIsAutosave = IsAutoSaving;
+	/**
+	* This is my first time trying this so I'm not sure if there are bugs or how bug prone it is, but if there were to ever be issues with saving the game This would be the first place I'd look.
+	* With that said, my thinking here is upon saving the game we'll grab whatever state the tanks were in and store that and anything that happens while the thread was running we wouldn't care about
+	* because the player had starting saving the game from the point they clicked save, not afterwards.
+	* One of the only issues i can think of off hand with this is what to do if the player is spamming the save button or something, but that can be guarded against by simply not allowing two saves to happen
+	* to the save slot simultenously.
+	*/
 
-	if (!m_CurrentSaveGame)
-	{
-		UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
-		FString InDate = FDateTime::Now().GetDate().ToString();
-		FString InTime = FDateTime::Now().GetTimeOfDay().ToString();
-		FString Date;
-		FString Time;
-		ParseDate(InDate, Date);
-		ParseTime(InTime, Time);
-		FString MapName = GetWorld()->GetMapName();
-		MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 
-		m_CurrentSaveGame = SaveGameInstance;
-	}
-	else
-	{
-		FString Date;
-		FString Time;
-		ParseDate(FDateTime::Now().GetDate().ToString(), Date);
-		ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
-		FString MapName = GetWorld()->GetMapName();
-		MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-	}
+	FThread SaveThread(TEXT("SaveGameThread"), [&]()
+		{
+			if (!m_CurrentSaveGame)
+			{
+				UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
+				TArray<AActor*> Tanks;
 
-	if (bIsAutosave)
-	{
-		m_SaveArray[0] = m_CurrentSaveGame;
-		m_CurrentSaveGame->CreateSlot(0);
-		UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
-		return;
-	}
+				UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
 
-	if (SlotToUse != 0)
-	{
-		m_SaveArray[SlotToUse] = m_CurrentSaveGame;
-		m_CurrentSaveGame->CreateSlot(SlotToUse);
-		UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
-		return;
-	}
-	else
-	{
-		ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
-	}
+				for (auto& T : Tanks)
+				{
+					ACharacterBase* Tank = Cast<ACharacterBase>(T);
+					FTankInfo Info;
+					Info.CurrentHealth = Tank->GetCurrentHealth();
+					Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
+					Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
+					Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
+					Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
+					Info.Location = Tank->GetActorLocation();
+					Info.Rotation = Tank->GetActorRotation();
+					Info.Stats = Tank->GetStats();
+					SaveGameInstance->m_SaveInfo.Tanks.Add(Info);
+				}
+
+				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+				SaveGameInstance->m_SaveInfo.Crowns = m_Crowns;
+				SaveGameInstance->m_SaveInfo.Scraps = m_Scraps;
+				FString InDate = FDateTime::Now().GetDate().ToString();
+				FString InTime = FDateTime::Now().GetTimeOfDay().ToString();
+				FString Date;
+				FString Time;
+				ParseDate(InDate, Date);
+				ParseTime(InTime, Time);
+				SaveGameInstance->m_SaveInfo.Date = Date;
+				SaveGameInstance->m_SaveInfo.Time = Time;
+
+				FString MapName = GetWorld()->GetMapName();
+				MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+				SaveGameInstance->m_SaveInfo.Mapname = MapName;
+
+				m_CurrentSaveGame = SaveGameInstance;
+			}
+			else
+			{
+
+				TArray<AActor*> Tanks;
+
+				UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
+
+				for (auto& T : Tanks)
+				{
+					ACharacterBase* Tank = Cast<ACharacterBase>(T);
+					FTankInfo Info;
+					Info.CurrentHealth = Tank->GetCurrentHealth();
+					Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
+					Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
+					Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
+					Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
+					Info.Location = Tank->GetActorLocation();
+					Info.Rotation = Tank->GetActorRotation();
+					Info.Stats = Tank->GetStats();
+					m_CurrentSaveGame->m_SaveInfo.Tanks.Add(Info);
+				}
+
+				m_CurrentSaveGame->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+				m_CurrentSaveGame->m_SaveInfo.Crowns = m_Crowns;
+				m_CurrentSaveGame->m_SaveInfo.Scraps = m_Scraps;
+				FString Date;
+				FString Time;
+				ParseDate(FDateTime::Now().GetDate().ToString(), Date);
+				ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
+				m_CurrentSaveGame->m_SaveInfo.Date = Date;
+				m_CurrentSaveGame->m_SaveInfo.Time = Time;
+				FString MapName = GetWorld()->GetMapName();
+				MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+				m_CurrentSaveGame->m_SaveInfo.Mapname = MapName;
+			}
+
+			if (bIsAutosave)
+			{
+				m_SaveArray[0] = m_CurrentSaveGame;
+				m_CurrentSaveGame->CreateSlot(0);
+				UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
+				return;
+			}
+
+			if (SlotToUse != 0)
+			{
+				m_SaveArray[SlotToUse] = m_CurrentSaveGame;
+				m_CurrentSaveGame->CreateSlot(SlotToUse);
+				UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
+				return;
+			}
+			else
+			{
+				ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
+			}
+			return;
+		});
 
 
 
@@ -114,11 +180,36 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 
 	if (LoadGameInstance)
 	{
-		//if (LoadGameInstance->SaveStats.MapName != TEXT(""))
-		//{
-		//	FName MapName(*LoadGameInstance->SaveStats.MapName);
-		//	SwitchLevel(MapName);
-		//}
+		//Loading the level first so that way we can be sure we have the correct Pointer to the Wave Class
+		
+		if (LoadGameInstance->m_SaveInfo.Mapname != TEXT(""))
+		{
+			FName MapName(*LoadGameInstance->m_SaveInfo.Mapname);
+			SwitchLevel(MapName);
+		}
+		
+		FActorSpawnParameters SpawnParams;
+		ACharacterBase* Tank;
+		for (auto& T : LoadGameInstance->m_SaveInfo.Tanks)
+		{
+			Tank = GetWorld()->SpawnActor<ACharacterBase>(
+				ACharacterBase::StaticClass(),
+				T.Location, T.Rotation, SpawnParams
+			);
+
+			Tank->SetCurrentHealth(T.CurrentHealth);
+			Tank->SetCurrentAPRounds(T.CurrentAPRounds);
+			Tank->SetCurrentApcrRounds(T.CurrentApcrRounds);
+			Tank->SetCurrentExplosiveRounds(T.CurrentExplosiveRounds);
+			Tank->SetCurrentHeatRounds(T.CurrentHeatRounds);
+			Tank->SetStats(T.Stats);
+		}
+
+		m_WavePtr->SetWaveNumber(LoadGameInstance->m_SaveInfo.CurrentWaveNumber);
+		m_Crowns = LoadGameInstance->m_SaveInfo.Crowns;
+		m_Scraps = LoadGameInstance->m_SaveInfo.Scraps;
+
+
 
 	}
 }
