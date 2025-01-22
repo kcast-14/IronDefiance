@@ -138,7 +138,7 @@ void AWave::OnEnemyDefeated()
 		{
 			this->EnterTransition();
 			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
-			GetWorld()->GetFirstLocalPlayerFromController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
+			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
 		}
 	}
 }

@@ -496,7 +496,7 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Completed, this, &AIDPlayerController::StopJumping);
 		EnhancedInputComponent->BindAction(m_MoveAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Move);
 		EnhancedInputComponent->BindAction(m_LookAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Look);
-		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Pause);
+		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::PauseGame);
 		EnhancedInputComponent->BindAction(m_SwitchTank, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchTanks);
 		EnhancedInputComponent->BindAction(m_SwitchToOperator, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToOperator);
 		EnhancedInputComponent->BindAction(m_SwitchCameraModeAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchCameraMode);
@@ -668,7 +668,7 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 
 }
 
-void AIDPlayerController::Pause(const FInputActionValue& Value)
+void AIDPlayerController::PauseGame(const FInputActionValue& Value)
 {
 	TogglePauseMenu();
 }
