@@ -64,6 +64,10 @@
 		{
 			"Name": "ChaosVehiclesPlugin",
 			"Enabled": true
+		},
+		{
+			"Name": "Rive",
+			"Enabled": false
 		}
 	]
 }
