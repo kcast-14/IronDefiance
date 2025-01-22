@@ -92,8 +92,6 @@ void AIDPlayerController::RemoveWaveTransition()
 		m_WaveTransition->SetVisibility(ESlateVisibility::Hidden);
 		IgnoreLookInput = false;
 		IgnoreMoveInput = false;
-		FInputModeGameOnly InputModeGame;
-		SetInputMode(InputModeGame);
 
 		bShowMouseCursor = false;
 	}
