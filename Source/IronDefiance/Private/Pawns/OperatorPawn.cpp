@@ -26,12 +26,13 @@ AOperatorPawn::AOperatorPawn()
 	m_SpringArmComponent->bInheritPitch = true;
 	m_SpringArmComponent->bInheritYaw = true;
 	m_SpringArmComponent->bInheritRoll = true;
-	m_SpringArmComponent->bUsePawnControlRotation = true;
+	m_SpringArmComponent->bUsePawnControlRotation = false;
 
 	// Create a CameraComponent	
 	m_CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Operator Camera"));
 	m_CameraComponent->SetupAttachment(m_SpringArmComponent);
 	m_CameraComponent->SetRelativeLocation(FVector(0.f, 0.f, 0.f)); // Position the camera
+	m_CameraComponent->SetRelativeRotation({0.f,0.f,0.f}); // Rotate the camera
 	m_CameraComponent->FieldOfView = 90.f;
 	m_CameraComponent->bUsePawnControlRotation = false;
 

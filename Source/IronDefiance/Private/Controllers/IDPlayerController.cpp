@@ -171,7 +171,7 @@ void AIDPlayerController::DisplayOperatorHUD_Implementation()
 		m_OperatorHUD->SetVisibility(ESlateVisibility::Visible);
 		FInputModeGameAndUI InputModeGameUI;
 		SetInputMode(InputModeGameUI);
-		bShowMouseCursor = false;
+		bShowMouseCursor = true;
 	}
 }
 
@@ -658,13 +658,7 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 		}
 		}
 	}
-
-	FRotator Rotation = GetPawn()->GetActorRotation();
-	Rotation.Yaw += LookVector.X;
-	Rotation.Pitch += LookVector.Y;
-	AddYawInput(LookVector.X);
-	AddPitchInput(-LookVector.Y);
-
+	return;
 
 }
 
@@ -718,6 +712,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		Possess(m_Operator);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
+		//m_Operator->GetSpringArmComponent()->SetRelativeRotation({ 315.f,0.f,0.f });
 		m_CurrentControlledTank = -1;
 	}
 }
