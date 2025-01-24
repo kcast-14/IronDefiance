@@ -64,6 +64,6 @@
 		{
 			"Name": "ChaosVehiclesPlugin",
 			"Enabled": true
-		}
+		},
 	]
 }

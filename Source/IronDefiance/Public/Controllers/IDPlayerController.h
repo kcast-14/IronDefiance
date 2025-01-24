@@ -202,24 +202,24 @@ public:
 
 	//Input Mapping Callbacks
 	UFUNCTION()
-	virtual void Jump(const FInputActionValue& Value);
+	void Jump(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void StopJumping(const FInputActionValue& Value);
+	void StopJumping(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void Move(const FInputActionValue& Value);
+	void Move(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void Look(const FInputActionValue& Value);
-	virtual void Pause(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void PauseGame(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void SwitchCameraMode(const FInputActionValue& Value);
+	void SwitchCameraMode(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void SwitchToOperator(const FInputActionValue& Value);
+	void SwitchToOperator(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void SwitchTanks(const FInputActionValue& Value);
+	void SwitchTanks(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void Zoom(const FInputActionValue& Value);
+	void Zoom(const FInputActionValue& Value);
 	UFUNCTION()
-	virtual void Select(const FInputActionValue& Value);
+	void Select(const FInputActionValue& Value);
 
 
 

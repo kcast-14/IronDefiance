@@ -178,7 +178,7 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 
 	m_CurrentSaveGame = LoadGameInstance;
 
-	if (LoadGameInstance)
+	if (LoadGameInstance != nullptr)
 	{
 		//Loading the level first so that way we can be sure we have the correct Pointer to the Wave Class
 		

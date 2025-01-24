@@ -14,7 +14,6 @@ AWave::AWave()
 	EnemyMaxCount = 0;
 	EnemyRemaining = 0;
 	TransitionPeriod = 5.0f;
-	this->GetSpawners();
 
 }
 
@@ -26,8 +25,8 @@ void AWave::GetSpawners()
 
 void AWave::StartWave()
 {
-	this->BuildEnemyPool();
 	EnemyMaxCount = CalculateMaxEnemyCount();
+	this->BuildEnemyPool();
 	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->SetPoolSize(EnemyMaxCount);
 	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->MakeHealthBarWidgets();
 
@@ -61,6 +60,7 @@ void AWave::BeginPlay()
 {
 	Super::BeginPlay();
 	GetGameInstance<UIDGameInstance>()->SetWavePtr(this); 
+	GetSpawners();
 
 	// We have to use these header guards because UE constructs objects in a different order in a shipping build 
 	// So if we're packaging a game to ship, this class doesn't get called until AFTER the player controller has been constructed.
@@ -73,7 +73,7 @@ void AWave::BeginPlay()
 
 void AWave::EnterTransition()
 {
-	if (WaveNumber++ > m_MaxNumberOfWaves)
+	if ((WaveNumber + 1) > m_MaxNumberOfWaves)
 	{
 		Win();
 	}
@@ -138,7 +138,7 @@ void AWave::OnEnemyDefeated()
 		{
 			this->EnterTransition();
 			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
-			GetWorld()->GetFirstLocalPlayerFromController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
+			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
 		}
 	}
 }

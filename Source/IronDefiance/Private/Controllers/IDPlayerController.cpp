@@ -92,8 +92,6 @@ void AIDPlayerController::RemoveWaveTransition()
 		m_WaveTransition->SetVisibility(ESlateVisibility::Hidden);
 		IgnoreLookInput = false;
 		IgnoreMoveInput = false;
-		FInputModeGameOnly InputModeGame;
-		SetInputMode(InputModeGame);
 
 		bShowMouseCursor = false;
 	}
@@ -173,7 +171,7 @@ void AIDPlayerController::DisplayOperatorHUD_Implementation()
 		m_OperatorHUD->SetVisibility(ESlateVisibility::Visible);
 		FInputModeGameAndUI InputModeGameUI;
 		SetInputMode(InputModeGameUI);
-		bShowMouseCursor = false;
+		bShowMouseCursor = true;
 	}
 }
 
@@ -498,7 +496,7 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Completed, this, &AIDPlayerController::StopJumping);
 		EnhancedInputComponent->BindAction(m_MoveAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Move);
 		EnhancedInputComponent->BindAction(m_LookAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Look);
-		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Pause);
+		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::PauseGame);
 		EnhancedInputComponent->BindAction(m_SwitchTank, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchTanks);
 		EnhancedInputComponent->BindAction(m_SwitchToOperator, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToOperator);
 		EnhancedInputComponent->BindAction(m_SwitchCameraModeAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchCameraMode);
@@ -660,17 +658,11 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 		}
 		}
 	}
-
-	FRotator Rotation = GetPawn()->GetActorRotation();
-	Rotation.Yaw += LookVector.X;
-	Rotation.Pitch += LookVector.Y;
-	AddYawInput(LookVector.X);
-	AddPitchInput(-LookVector.Y);
-
+	return;
 
 }
 
-void AIDPlayerController::Pause(const FInputActionValue& Value)
+void AIDPlayerController::PauseGame(const FInputActionValue& Value)
 {
 	TogglePauseMenu();
 }
@@ -720,6 +712,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		Possess(m_Operator);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
+		//m_Operator->GetSpringArmComponent()->SetRelativeRotation({ 315.f,0.f,0.f });
 		m_CurrentControlledTank = -1;
 	}
 }
