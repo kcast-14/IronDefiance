@@ -6,6 +6,7 @@
 #include "Character/CharacterBase.h"
 #include "Actors/Wave.h"
 #include "Kismet/GameplayStatics.h"
+#include <thread>
 
 
 UIDGameInstance::UIDGameInstance()
@@ -18,11 +19,6 @@ UIDGameInstance::UIDGameInstance()
 void UIDGameInstance::Init()
 {
 	Super::Init();
-}
-
-void UIDGameInstance::PostInitProperties()
-{
-	Super::PostInitProperties();
 
 	if (GetWorld())
 	{
@@ -30,9 +26,20 @@ void UIDGameInstance::PostInitProperties()
 	}
 }
 
+void UIDGameInstance::PostInitProperties()
+{
+	Super::PostInitProperties();
+
+
+}
+
 void UIDGameInstance::BeginPlay()
 {
 	m_SaveArray.Reserve(m_MaxNumberOfSaveFiles);
+	for (int i = 0; i < m_MaxNumberOfSaveFiles; ++i)
+	{
+		m_SaveArray.Init({}, i);
+	}
 
 	if (UGameplayStatics::DoesSaveGameExist({ "AutoSave" }, 0))
 	{
@@ -42,10 +49,10 @@ void UIDGameInstance::BeginPlay()
 	// Delano: Yeah yeah yeah I know....
 	for (int i = 1; i <= m_MaxNumberOfSaveFiles; ++i)
 	{
-		if (UGameplayStatics::DoesSaveGameExist(FString(("Slot %d"), i), 0))
+		if (UGameplayStatics::DoesSaveGameExist(FString(("Slot ")) + FString::FromInt(i), 0))
 		{
-			UIDSaveGame* LoadGameInstance = Cast<UIDSaveGame>(UGameplayStatics::LoadGameFromSlot(FString(("Slot %d"), i), 0));
-			m_SaveArray.Insert(LoadGameInstance, i);
+			UIDSaveGame* LoadGameInstance = Cast<UIDSaveGame>(UGameplayStatics::LoadGameFromSlot(FString(("Slot ")) + FString::FromInt(i), 0));
+			m_SaveArray[i] = LoadGameInstance;
 		}
 	}
 }
@@ -67,109 +74,107 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 	* to the save slot simultenously.
 	*/
 
+	TArray<AActor*> Tanks;
 
-	FThread SaveThread(TEXT("SaveGameThread"), [&]()
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
+	auto f = [&](TArray<AActor*> TankArray, int Slot, bool IsAutosave, TArray<UIDSaveGame*> SaveArray)
+	{
+		if (!m_CurrentSaveGame)
 		{
-			if (!m_CurrentSaveGame)
+			UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
+
+			SaveGameInstance->m_SaveInfo.Tanks.Empty();
+			for (auto& T : TankArray)
 			{
-				UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
-				TArray<AActor*> Tanks;
-
-				UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
-
-				for (auto& T : Tanks)
-				{
-					ACharacterBase* Tank = Cast<ACharacterBase>(T);
-					FTankInfo Info;
-					Info.CurrentHealth = Tank->GetCurrentHealth();
-					Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
-					Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
-					Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
-					Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
-					Info.Location = Tank->GetActorLocation();
-					Info.Rotation = Tank->GetActorRotation();
-					Info.Stats = Tank->GetStats();
-					SaveGameInstance->m_SaveInfo.Tanks.Add(Info);
-				}
-
-				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
-				SaveGameInstance->m_SaveInfo.Crowns = m_Crowns;
-				SaveGameInstance->m_SaveInfo.Scraps = m_Scraps;
-				FString InDate = FDateTime::Now().GetDate().ToString();
-				FString InTime = FDateTime::Now().GetTimeOfDay().ToString();
-				FString Date;
-				FString Time;
-				ParseDate(InDate, Date);
-				ParseTime(InTime, Time);
-				SaveGameInstance->m_SaveInfo.Date = Date;
-				SaveGameInstance->m_SaveInfo.Time = Time;
-
-				FString MapName = GetWorld()->GetMapName();
-				MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-				SaveGameInstance->m_SaveInfo.Mapname = MapName;
-
-				m_CurrentSaveGame = SaveGameInstance;
-			}
-			else
-			{
-
-				TArray<AActor*> Tanks;
-
-				UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
-
-				for (auto& T : Tanks)
-				{
-					ACharacterBase* Tank = Cast<ACharacterBase>(T);
-					FTankInfo Info;
-					Info.CurrentHealth = Tank->GetCurrentHealth();
-					Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
-					Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
-					Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
-					Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
-					Info.Location = Tank->GetActorLocation();
-					Info.Rotation = Tank->GetActorRotation();
-					Info.Stats = Tank->GetStats();
-					m_CurrentSaveGame->m_SaveInfo.Tanks.Add(Info);
-				}
-
-				m_CurrentSaveGame->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
-				m_CurrentSaveGame->m_SaveInfo.Crowns = m_Crowns;
-				m_CurrentSaveGame->m_SaveInfo.Scraps = m_Scraps;
-				FString Date;
-				FString Time;
-				ParseDate(FDateTime::Now().GetDate().ToString(), Date);
-				ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
-				m_CurrentSaveGame->m_SaveInfo.Date = Date;
-				m_CurrentSaveGame->m_SaveInfo.Time = Time;
-				FString MapName = GetWorld()->GetMapName();
-				MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-				m_CurrentSaveGame->m_SaveInfo.Mapname = MapName;
+				ACharacterBase* Tank = Cast<ACharacterBase>(T);
+				FTankInfo Info;
+				Info.CurrentHealth = Tank->GetCurrentHealth();
+				Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
+				Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
+				Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
+				Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
+				Info.Location = Tank->GetActorLocation();
+				Info.Rotation = Tank->GetActorRotation();
+				Info.Stats = Tank->GetStats();
+				SaveGameInstance->m_SaveInfo.Tanks.Add(Info);
 			}
 
-			if (bIsAutosave)
+			SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+			SaveGameInstance->m_SaveInfo.Crowns = m_Crowns;
+			SaveGameInstance->m_SaveInfo.Scraps = m_Scraps;
+			FString InDate = FDateTime::Now().GetDate().ToString();
+			FString InTime = FDateTime::Now().GetTimeOfDay().ToString();
+			FString Date;
+			FString Time;
+			ParseDate(InDate, Date);
+			ParseTime(InTime, Time);
+			SaveGameInstance->m_SaveInfo.Date = Date;
+			SaveGameInstance->m_SaveInfo.Time = Time;
+
+			FString MapName = GetWorld()->GetMapName();
+			MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+			SaveGameInstance->m_SaveInfo.Mapname = MapName;
+
+			m_CurrentSaveGame = SaveGameInstance;
+		}
+		else
+		{
+
+			m_CurrentSaveGame->m_SaveInfo.Tanks.Empty();
+			for (auto& T : TankArray)
 			{
-				m_SaveArray[0] = m_CurrentSaveGame;
-				m_CurrentSaveGame->CreateSlot(0);
-				UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
-				return;
+				ACharacterBase* Tank = Cast<ACharacterBase>(T);
+				FTankInfo Info;
+				Info.CurrentHealth = Tank->GetCurrentHealth();
+				Info.CurrentAPRounds = Tank->GetCurrentAPRounds();
+				Info.CurrentApcrRounds = Tank->GetCurrentApcrRounds();
+				Info.CurrentExplosiveRounds = Tank->GetCurrentExplosiveRounds();
+				Info.CurrentHeatRounds = Tank->GetCurrentHeatRounds();
+				Info.Location = Tank->GetActorLocation();
+				Info.Rotation = Tank->GetActorRotation();
+				Info.Stats = Tank->GetStats();
+				m_CurrentSaveGame->m_SaveInfo.Tanks.Add(Info);
 			}
 
-			if (SlotToUse != 0)
-			{
-				m_SaveArray[SlotToUse] = m_CurrentSaveGame;
-				m_CurrentSaveGame->CreateSlot(SlotToUse);
-				UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
-				return;
-			}
-			else
-			{
-				ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
-			}
+			m_CurrentSaveGame->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+			m_CurrentSaveGame->m_SaveInfo.Crowns = m_Crowns;
+			m_CurrentSaveGame->m_SaveInfo.Scraps = m_Scraps;
+			FString Date;
+			FString Time;
+			ParseDate(FDateTime::Now().GetDate().ToString(), Date);
+			ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
+			m_CurrentSaveGame->m_SaveInfo.Date = Date;
+			m_CurrentSaveGame->m_SaveInfo.Time = Time;
+			FString MapName = GetWorld()->GetMapName();
+			MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+			m_CurrentSaveGame->m_SaveInfo.Mapname = MapName;
+		}
+
+		if (IsAutosave)
+		{
+			SaveArray[0] = m_CurrentSaveGame;
+			m_CurrentSaveGame->CreateSlot(0);
+			UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
 			return;
-		});
+		}
 
+		if (Slot != 0)
+		{
+			SaveArray[Slot] = m_CurrentSaveGame;
+			m_CurrentSaveGame->CreateSlot(Slot);
+			UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
+			return;
+		}
+		else
+		{
+			ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
+		}
+		return;
+	};
 
+	std::thread th(f, Tanks, SlotToUse, bIsAutosave, m_SaveArray);
 
+	th.detach();
 }
 
 void UIDGameInstance::LoadGame(FString SaveSlotName)

@@ -31,7 +31,7 @@ FString UIDSaveGame::CreateSaveSlotName(int SaveSlotNumber)
 	{
 		return FString(("AutoSave"));
 	}
-	return FString(("Slot %d"), SaveSlotNumber);
+	return FString(("Slot ")) + FString::FromInt(SaveSlotNumber);
 }
 
 FString UIDSaveGame::GetSlotName()
