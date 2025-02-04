@@ -4,7 +4,7 @@
 
 ### How to build the project (Fresh Repo Clone)
 
-![Fresh Clone Gif](/ReadMeAssets/FreshClone.gif) {width ="400", height="300"}
+![Fresh Clone Gif](/ReadMeAssets/FreshClone.gif){width ="400", height="300"}
 
 - Step 1: Right click IronDefiance.uproject
 - Step 2: In the dropdown menu, navigate to _Show more options_ at the bottom of the dropdown menu and click it
