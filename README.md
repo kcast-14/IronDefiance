@@ -4,6 +4,8 @@
 
 ### How to build the project (Fresh Repo Clone)
 
+![Fresh Clone Gif](/ReadMeAssets/FreshClone.gif)
+
 - Step 1: Right click IronDefiance.uproject
 - Step 2: In the dropdown menu, navigate to _Show more options_ at the bottom of the dropdown menu and click it
 - Step 3: A new dropdown menu will appear and you should then navigate to _Generate Visual Studio project files_ and click that
@@ -25,6 +27,9 @@ The following steps are broken into subcategories. Category a are the steps for 
 
     > 1b: git branch Development
 
+
+![Pull Changes 1](/ReadMeAssets/PullChanges1.gif)
+
 - Step 2:
 
     > 2a: Next you'll want to commit your changes to the repo by navigating to the bottom left corner and filling out a summary of the changes that you've made.
@@ -34,6 +39,8 @@ The following steps are broken into subcategories. Category a are the steps for 
     ***Note: If you've added or created new files you may have to add those files manually using the command git add /path/to/new/file***
 
     > 2b: git commit -m "MESSAGE GOES HERE"
+
+![Pull Changes 2](/ReadMeAssets/PullChanges2.gif)
 
 
 - Step 3: 
@@ -47,6 +54,8 @@ The following steps are broken into subcategories. Category a are the steps for 
     > 4a: Now you're ready to push your changes to the repo.
 
     > 4b: git push
+
+![Pull Changes 3](/ReadMeAssets/PullChanges3.gif)
 
 
 ### How to package the game for playtesting
