@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import subprocess
 import sys
@@ -41,8 +42,8 @@ def main():
     AutomationToolExe = None
     DetectedPlatform = platform.system()
     if len(sys.argv) != 3:
-        print('help: python BuildAllLevels.py  UE/Project/Path Path/To/Maps\n')
-        print(r'Ex: python BuildAllLevels.py "D:\path\to\uproject.uproject" "D:\path\to\maps"')
+        print('help: python PackageGame.py  UE/Project/Path Path/To/Maps\n')
+        print(r'Ex: python PackageGame.py "D:\path\to\uproject.uproject" "D:\path\to\maps"')
         exit()
 
     print("Which version of Unreal Engine does this project use?")
