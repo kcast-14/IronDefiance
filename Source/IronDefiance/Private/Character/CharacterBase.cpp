@@ -257,8 +257,6 @@ void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here
 
-	UE_LOG(LogTemp, Warning, TEXT("%s Is Shooting!"), *GetActorLabel());
-
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
 	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
