@@ -30,7 +30,9 @@ The following steps are broken into subcategories. Category a are the steps for 
     > 2a: Next you'll want to commit your changes to the repo by navigating to the bottom left corner and filling out a summary of the changes that you've made.
 
     > 2b: git add . 
+
     ***Note: If you've added or created new files you may have to add those files manually using the command git add /path/to/new/file***
+
     > 2b: git commit -m "MESSAGE GOES HERE"
 
 
