@@ -91,7 +91,7 @@ def main():
                  print("UE4 Result Found")
                  result.append(os.path.join(r, "UE4Editor.app"))
                  UEPath = result[0]
-                 AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/".format(UEVersion)
+                 AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/RunUAT".format(UEVersion)
                  break
         elif  UEVersion.__contains__("5."):
             print("Searching For UE5 Executable")
@@ -102,7 +102,7 @@ def main():
 
                  result.append(os.path.join(r, "UnrealEditor.app"))
                  UEPath = result[0]
-                 AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/".format(UEVersion)
+                 AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/RunUAT".format(UEVersion)
                  break
         else:
             print("\nThis program only works with UE4 or UE5\n Now Exiting!")
