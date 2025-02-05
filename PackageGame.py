@@ -87,7 +87,7 @@ def main():
             exepath = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/".format(UEVersion)
             print("Searching For UE4 Executable")
             for r,d,f in os.walk(exepath):
-                if "UE4Editor.exe" in f:
+                if "UE4Editor" in f:
                  print("UE4 Result Found")
                  result.append(os.path.join(r, "UE4Editor.exe"))
                  UEPath = result[0]
@@ -97,7 +97,7 @@ def main():
             print("Searching For UE5 Executable")
             exepath = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/Mac/".format(UEVersion)
             for r,d,f in os.walk(exepath):
-                if "UnrealEditor.exe" in f:
+                if "UnrealEditor" in f:
                  print("UE5 Result Found")
 
                  result.append(os.path.join(r, "UnrealEditor.exe"))
