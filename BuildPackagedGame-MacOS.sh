@@ -5,7 +5,7 @@
 
 PWD="$(pwd)"
 
-if [ -f python ]; then
+if [ -f python3 ]; then
 	./PackageGame.py PWD/IronDefiance.uproject PWD/Content/IronDefiance/Maps/Levels/
 
 else

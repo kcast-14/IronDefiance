@@ -26,8 +26,9 @@ enum class ETankType : uint8
 UENUM(BlueprintType)
 enum class ECameraMode : uint8
 {
-	CM_FirstPerson UMETA(DisplayName = "First Person View"),
-	CM_ThirdPerson UMETA(DisplayName = "Third Person View"),
+	CM_SniperMode UMETA(DisplayName = "First Person View"),
+	CM_ActionMode UMETA(DisplayName = "Third Person View"),
+	CM_TacticianMode UMETA(DisplayName = "Tactician View"),
 	DEFAULT_MAX UMETA(DisplayName = "Default")
 };
 

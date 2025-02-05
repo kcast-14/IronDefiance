@@ -16,24 +16,6 @@
 #include "InputMappingContext.h"
 #include "InputActionValue.h"
 
-void AIDPlayerController::DisplayHUDOverlay()
-{
-	if (HUDOverlay)
-	{
-		bHUDOverlayVisible = true;
-		HUDOverlay->SetVisibility(ESlateVisibility::Visible);
-	}
-}
-
-void AIDPlayerController::RemoveHUDOverlay()
-{
-	if (HUDOverlay)
-	{
-		bHUDOverlayVisible = false;
-		HUDOverlay->SetVisibility(ESlateVisibility::Hidden);
-	}
-}
-
 void AIDPlayerController::DisplayEnemyHealthBar()
 {
 	for (auto& W : m_EnemyHealthBars)
@@ -88,12 +70,12 @@ void AIDPlayerController::RemoveWaveTransition()
 {
 	if (m_WaveTransition)
 	{
-		bWaveTransitionVisible = true;
+		bWaveTransitionVisible = false;
 		m_WaveTransition->SetVisibility(ESlateVisibility::Hidden);
 		IgnoreLookInput = false;
 		IgnoreMoveInput = false;
 
-		bShowMouseCursor = false;
+		bShowMouseCursor = true;
 	}
 }
 
@@ -195,6 +177,7 @@ void AIDPlayerController::DisplaySniperHUD_Implementation()
 		m_SniperHUD->SetVisibility(ESlateVisibility::Visible);
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
+		bShowMouseCursor = false;
 	}
 }
 
@@ -206,6 +189,7 @@ void AIDPlayerController::RemoveSniperHUD_Implementation()
 		m_SniperHUD->SetVisibility(ESlateVisibility::Hidden);
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
+		bShowMouseCursor = false;
 	}
 }
 
@@ -217,6 +201,7 @@ void AIDPlayerController::DisplayActionHUD_Implementation()
 		m_ActionHUD->SetVisibility(ESlateVisibility::Visible);
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
+		bShowMouseCursor = false;
 	}
 }
 
@@ -228,18 +213,7 @@ void AIDPlayerController::RemoveActionHUD_Implementation()
 		m_ActionHUD->SetVisibility(ESlateVisibility::Hidden);
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
-	}
-}
-
-void AIDPlayerController::ToggleHUDOverlay()
-{
-	if (bHUDOverlayVisible)
-	{
-		RemoveHUDOverlay();
-	}
-	else
-	{
-		DisplayHUDOverlay();
+		bShowMouseCursor = false;
 	}
 }
 
@@ -374,11 +348,6 @@ void AIDPlayerController::BeginPlay()
 	Super::BeginPlay();
 	FVector2D Alignment(0.f, 0.f);
 
-	check(HUDOverlayAsset);
-	HUDOverlay = CreateWidget<UUserWidget>(this, HUDOverlayAsset);
-	HUDOverlay->AddToViewport();
-	HUDOverlay->SetVisibility(ESlateVisibility::Hidden);
-
 
 	check(m_WWaveTransition);
 
@@ -454,7 +423,6 @@ void AIDPlayerController::BeginPlay()
 		FInputModeUIOnly InputMode;
 		SetInputMode(InputMode);
 		bShowMouseCursor = true;
-		ToggleOperatorHUD();
 	}
 }
 
@@ -499,7 +467,8 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::PauseGame);
 		EnhancedInputComponent->BindAction(m_SwitchTank, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchTanks);
 		EnhancedInputComponent->BindAction(m_SwitchToOperator, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToOperator);
-		EnhancedInputComponent->BindAction(m_SwitchCameraModeAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchCameraMode);
+		EnhancedInputComponent->BindAction(m_SwitchToAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToAction);
+		EnhancedInputComponent->BindAction(m_SwitchToSniper, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToSniper);
 		EnhancedInputComponent->BindAction(m_ZoomAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Zoom);
 		EnhancedInputComponent->BindAction(m_SelectAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Select); //Name is subject to change
 
@@ -593,22 +562,21 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 {
 	FVector2D MoveVector = Value.Get<FVector2D>();
 
-	if (!m_Operator->IsPilotingTank())
+	switch (m_Operator->GetCameraMode())
+	{
+	case ECameraMode::CM_TacticianMode:
 	{
 		m_Operator->AddMovementInput(m_Operator->GetActorForwardVector(), MoveVector.Y);
 		m_Operator->AddMovementInput(m_Operator->GetActorRightVector(), MoveVector.X);
-		return;
+		break;
 	}
-
-	switch (m_Operator->GetTankToPilot()->GetCameraMode())
-	{
-	case ECameraMode::CM_ThirdPerson:
+	case ECameraMode::CM_ActionMode:
 	{
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorForwardVector(), (MoveVector.Y * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorRightVector(), (MoveVector.X * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		break;
 	}
-	case ECameraMode::CM_FirstPerson:
+	case ECameraMode::CM_SniperMode:
 		//We probably need to do something with a camera here but maybe not
 	{
 		FVector Location = m_Operator->GetTankToPilot()->GetCameraComponent()->GetComponentTransform().GetLocation();
@@ -632,9 +600,9 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 	
 	if (m_Operator->IsPilotingTank())
 	{
-		switch (m_Operator->GetTankToPilot()->GetCameraMode())
+		switch (m_Operator->GetCameraMode())
 		{
-		case ECameraMode::CM_ThirdPerson:
+		case ECameraMode::CM_ActionMode:
 		{
 			FRotator Rotation = m_Operator->GetTankToPilot()->GetSpringArmComponent()->GetComponentRotation();
 			Rotation.Yaw += LookVector.X;
@@ -642,7 +610,7 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 			m_Operator->GetTankToPilot()->GetSpringArmComponent()->SetWorldRotation(Rotation);
 			return;
 		}
-		case ECameraMode::CM_FirstPerson:
+		case ECameraMode::CM_SniperMode:
 		{
 			FRotator Rotation = GetPawn()->GetActorRotation();
 			Rotation.Yaw += LookVector.X;
@@ -667,41 +635,30 @@ void AIDPlayerController::PauseGame(const FInputActionValue& Value)
 	TogglePauseMenu();
 }
 
-void AIDPlayerController::SwitchCameraMode(const FInputActionValue& Value)
+void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 {
-	if (!m_Operator->IsPilotingTank())
+	if (m_Tanks.IsEmpty())
 	{
 		return;
 	}
-
-	switch (m_Operator->GetTankToPilot()->GetCameraMode())
+	if (m_Operator->GetTankToPilot() != nullptr)
 	{
-	case ECameraMode::CM_ThirdPerson:
-	{
-		RemoveHUDOverlay();
 		RemoveOperatorHUD();
 		m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 		Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-		m_Operator->GetTankToPilot()->SetCameraMode(ECameraMode::CM_FirstPerson);
+		m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
 		ToggleSniperHUD();
-		break;
 	}
-	case ECameraMode::CM_FirstPerson:
+	else
 	{
-		DisplayHUDOverlay();
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
-		Possess(m_Operator->GetTankToPilot());
-		m_Operator->GetTankToPilot()->SetCameraMode(ECameraMode::CM_ThirdPerson);
+		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+		m_Operator->SetTankToPlace(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+		RemoveOperatorHUD();
+		m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+		Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+		m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
 		ToggleSniperHUD();
-		break;
-
 	}
-	default:
-	{
-		break;
-	}
-	}
-
 }
 
 void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
@@ -712,29 +669,54 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		Possess(m_Operator);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
-		//m_Operator->GetSpringArmComponent()->SetRelativeRotation({ 315.f,0.f,0.f });
+		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
 		m_CurrentControlledTank = -1;
 	}
+}
+
+void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
+{
+	if (m_Tanks.IsEmpty())
+	{
+		return;
+	}
+
+	if (m_Operator->GetTankToPilot() != nullptr)
+	{
+		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+		Possess(m_Operator->GetTankToPilot());
+		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		ToggleSniperHUD();
+	}
+	else
+	{
+		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+		m_Operator->SetTankToPlace(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+		Possess(m_Operator->GetTankToPilot());
+		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		ToggleSniperHUD();
+	}
+
 }
 
 void AIDPlayerController::Zoom(const FInputActionValue& Value)
 {
 	float ZoomValue = Value.Get<float>();
 
-	if (!m_Operator->IsPilotingTank())
+	switch (m_Operator->GetCameraMode())
+	{
+	case ECameraMode::CM_TacticianMode:
 	{
 		m_Operator->GetSpringArmComponent()->TargetArmLength += (ZoomValue * -50.f);
-		return;
+		break;
 	}
-
-	switch (m_Operator->GetTankToPilot()->GetCameraMode())
-	{
-	case ECameraMode::CM_ThirdPerson:
+	case ECameraMode::CM_ActionMode:
 	{
 		m_Operator->GetTankToPilot()->GetSpringArmComponent()->TargetArmLength += (ZoomValue * -50.f);
 		break;
 	}
-	case ECameraMode::CM_FirstPerson:
+	case ECameraMode::CM_SniperMode:
 	{
 		m_Operator->GetTankToPilot()->GetFPSPawn()->GetSpringArmComponent()->TargetArmLength += (ZoomValue * -50.f);
 		break;

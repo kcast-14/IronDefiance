@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "IDEnums.h"
 #include "OperatorPawn.generated.h"
 
 class ACharacterBase;
@@ -44,6 +45,9 @@ public:
 
 	FORCEINLINE virtual void CanPilotTank(bool Can) { bIsPilotingTank = Can; }
 
+	FORCEINLINE virtual ECameraMode GetCameraMode() { return m_CameraMode; }
+	FORCEINLINE virtual void SetCameraMode(ECameraMode Mode) { m_CameraMode = Mode; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -72,4 +76,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank To Pilot"))
 	ACharacterBase* m_TankToPilot = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
+	ECameraMode m_CameraMode = ECameraMode::DEFAULT_MAX;
+
+
 };

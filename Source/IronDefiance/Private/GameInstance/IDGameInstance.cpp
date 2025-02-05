@@ -14,6 +14,27 @@ UIDGameInstance::UIDGameInstance()
 
 }
 
+void UIDGameInstance::MakeEmptyGameSave(int SlotToUse)
+{
+	UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
+
+	m_CurrentSaveGame = SaveGameInstance;
+
+	if (SlotToUse != 0)
+	{
+		m_SaveArray[SlotToUse] = m_CurrentSaveGame;
+		m_CurrentSaveGame->CreateSlot(SlotToUse);
+		UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
+		return;
+	}
+	else
+	{
+		ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
+	}
+	return;
+
+}
+
 
 
 void UIDGameInstance::Init()
@@ -99,7 +120,14 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 				SaveGameInstance->m_SaveInfo.Tanks.Add(Info);
 			}
 
-			SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+			if (m_WavePtr != nullptr)
+			{
+				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+			}
+			else
+			{
+				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = 0;
+			}
 			SaveGameInstance->m_SaveInfo.Crowns = m_Crowns;
 			SaveGameInstance->m_SaveInfo.Scraps = m_Scraps;
 			FString InDate = FDateTime::Now().GetDate().ToString();

@@ -52,7 +52,7 @@ void AWave::StartWave()
 	}
 
 	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->RemoveWaveTransition();
-	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
+	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleOperatorHUD();
 }
 
 // Added: Delano Wilcox
@@ -137,7 +137,7 @@ void AWave::OnEnemyDefeated()
 		if (EnemyRemaining <= 0)
 		{
 			this->EnterTransition();
-			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleHUDOverlay();
+			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleOperatorHUD();
 			GetWorld()->GetFirstPlayerController<AIDPlayerController>()->DisplayWaveTransition(); // Added: Delano Wilcox
 		}
 	}

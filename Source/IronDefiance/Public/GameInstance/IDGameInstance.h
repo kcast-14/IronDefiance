@@ -23,6 +23,9 @@ public:
 	UIDGameInstance();
 
 	UFUNCTION(BlueprintCallable, Category = "Save")
+	void MakeEmptyGameSave(int SlotToUse);
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
 	void SaveGame(int SlotToUse, bool IsAutoSaving);
 	UFUNCTION(BlueprintCallable, Category = "Save")
 	void LoadGame(FString SaveSlotName);
