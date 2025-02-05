@@ -32,7 +32,6 @@ def PackageGame(Path : str, ProjectPath :str):
     PackageDir = ProjectParent + "\\PackagedGame"
     ProjName = ProjName.replace('.uproject"', "")
     print("Packaging", ProjName)
-    print(Path, "BuildCookRun", "-project="+ProjectPath, "-platform=Win64", "-clientconfig=Shipping")
     subprocess.run([Path, "BuildCookRun", "-project="+ProjectPath, "-Platform=Win64", "-clientconfig=Shipping", "-stage", "-pak", "-build=True", "-cook", "-nodebuginfo","-package", "-distribution", "-stagingdirectory="+PackageDir])
 
 #main
@@ -89,7 +88,7 @@ def main():
             for r,d,f in os.walk(exepath):
                 if "UE4Editor" in f:
                  print("UE4 Result Found")
-                 result.append(os.path.join(r, "UE4Editor.app"))
+                 result.append(os.path.join(r, "UE4Editor"))
                  UEPath = result[0]
                  AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/RunUAT".format(UEVersion)
                  break
@@ -100,7 +99,7 @@ def main():
                 if "UnrealEditor" in f:
                  print("UE5 Result Found")
 
-                 result.append(os.path.join(r, "UnrealEditor.app"))
+                 result.append(os.path.join(r, "UnrealEditor"))
                  UEPath = result[0]
                  AutomationToolExe = "/Users/Shared/Epic Games/UE_{}/Engine/build/batchfiles/RunUAT".format(UEVersion)
                  break
