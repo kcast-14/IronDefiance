@@ -6,7 +6,7 @@
 PWD="$(pwd)"
 
 if command -v python3 >/dev/null 2>&1; then
-	./PackageGame.py $PWD/IronDefiance.uproject $PWD/Content/IronDefiance/Maps/Levels/
+	./PackageGame.py "$PWD/IronDefiance.uproject" "$PWD/Content/IronDefiance/Maps/Levels/"
 
 else
 	echo "Python not installed on this machine. Please visit https://www.python.org/downloads/macos/ and download the latests Stable Release!"
