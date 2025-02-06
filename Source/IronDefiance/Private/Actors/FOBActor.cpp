@@ -62,9 +62,11 @@ void AFOBActor::Die()
 void AFOBActor::BeginPlay()
 {
 	Super::BeginPlay();
-	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetFOBPointer(this);
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->AddTowerPointer(this);
 	m_AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AFOBActor::OnAgroOverlapBegin);
 	m_AgroSphere->OnComponentEndOverlap.AddDynamic(this, &AFOBActor::OnAgroOverlapEnd);
+
+	check(m_Type != ETowerType::DEFAULT_MAX);
 }
 
 // Called every frame
@@ -72,5 +74,36 @@ void AFOBActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	switch (m_Type)
+	{
+	case ETowerType::TT_Crown:
+	{
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_Timer))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_Timer, this, &AFOBActor::AddCrowns, m_Delay, false);
+		}
+		break;
+	}
+	case ETowerType::TT_Energy:
+	{
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_Timer))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_Timer, this, &AFOBActor::IncrementUltimate, m_Delay, false);
+		}
+		break;
+	}
+	}
+}
+
+void AFOBActor::AddCrowns()
+{
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->IncrementCrowns(m_CrownsToAdd);
+	GetWorld()->GetTimerManager().ClearTimer(m_Timer);
+}
+
+void AFOBActor::IncrementUltimate()
+{
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->IncrementEnergy(m_EnergyToAdd);
+	GetWorld()->GetTimerManager().ClearTimer(m_Timer);
 }
 

@@ -10,7 +10,9 @@
 #include "Enemy/Enemy.h"
 #include "GameInstance/IDGameInstance.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Pawns/OperatorPawn.h"
+#include "Sound/SoundCue.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
@@ -219,12 +221,56 @@ void AIDPlayerController::RemoveActionHUD_Implementation()
 
 void AIDPlayerController::TogglePauseMenu()
 {
+	//For right now it seems that we can't display 2 HUDs AND interact with the one that should be "on top", therefore we have to do this
 	if (bPauseMenuVisible)
 	{
+		UGameplayStatics::PlaySound2D(this, m_Back);
 		RemovePauseMenu();
+		switch (m_Operator->GetCameraMode())
+		{
+		case ECameraMode::CM_TacticianMode:
+		{
+			ToggleOperatorHUD();
+			break;
+		}
+		case ECameraMode::CM_ActionMode:
+		{
+			ToggleActionHUD();
+			break;
+		}
+		case ECameraMode::CM_SniperMode:
+		{
+			ToggleSniperHUD();
+			break;
+		}
+		default:
+			break;
+		}
+
 	}
 	else
 	{
+		UGameplayStatics::PlaySound2D(this, m_Pause);
+		switch (m_Operator->GetCameraMode())
+		{
+		case ECameraMode::CM_TacticianMode:
+		{
+			ToggleOperatorHUD();
+			break;
+		}
+		case ECameraMode::CM_ActionMode:
+		{
+			ToggleActionHUD();
+			break;
+		}
+		case ECameraMode::CM_SniperMode:
+		{
+			ToggleSniperHUD();
+			break;
+		}
+		default:
+			break;
+		}
 		DisplayPauseMenu();
 	}
 }
@@ -245,6 +291,7 @@ void AIDPlayerController::ToggleSniperHUD()
 {
 	if (bSniperHUDVisible)
 	{
+
 		RemoveSniperHUD();
 	}
 	else

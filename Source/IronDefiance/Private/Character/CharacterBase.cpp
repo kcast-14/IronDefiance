@@ -49,7 +49,6 @@ ACharacterBase::ACharacterBase()
 
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	GetMesh()->SetOnlyOwnerSee(true);
 	GetMesh()->SetupAttachment(GetCapsuleComponent());
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
@@ -74,14 +73,15 @@ ACharacterBase::ACharacterBase()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();	
-
-	m_FOB = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
+	TMap<ETowerType, AFOBActor*> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
 	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapEnd);
 
-	m_FOB->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
-	m_FOB->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
-
+	for (auto& T : Towers)
+	{
+		T.Value->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
+		T.Value->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
+	}
 	m_CurrentHealth = m_Stats.MaxHealth;
 }
 
@@ -356,7 +356,6 @@ void ACharacterBase::OnEnemyExitedDangerZone(AActor* Target)
 	int32 Index = m_TargetsInRange.Find(Enemy);
 	if (Index == -1)
 	{
-		m_TargetsInDangerZone.RemoveAt(Index);
 		return;
 	}
 

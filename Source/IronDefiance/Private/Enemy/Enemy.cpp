@@ -49,7 +49,18 @@ void AEnemy::BeginPlay()
 
 	m_MovementStatus = EMovementStatus::MS_Idle;
 
-	m_Target = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
+	TMap<ETowerType, AFOBActor*> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
+	int TowerToPick = FMath::RandRange(0, Towers.Num()-1);
+	int Index = 0;
+	for (auto& T : Towers)
+	{
+		if (Index == TowerToPick)
+		{
+			m_Target = T.Value;
+			break;
+		}
+		Index++;
+	}
 	MoveToTarget(m_Target);
 }
 

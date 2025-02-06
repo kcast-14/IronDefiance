@@ -17,6 +17,7 @@ class AOperatorPawn;
 class UUserWidget;
 class UInputAction;
 class UInputMappingContext;
+class USoundCue;
 struct FInputActionValue;
 
 UCLASS()
@@ -212,9 +213,6 @@ private:
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Player Mapping Context"))
 		UInputMappingContext* m_PlayerMappingContext;
 
-		//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Mapping Context"))
-		//UInputMappingContext* m_TankMappingContext;
-
 		//Action Mapping Variables
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Jump Action"))
 		UInputAction* m_JumpAction = nullptr;
@@ -248,6 +246,12 @@ private:
 
 		UPROPERTY()
 		int m_CurrentControlledTank = 0;
+
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Sound"))
+		USoundCue* m_Pause;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Back Sound"))
+		USoundCue* m_Back;
+
 
 private:
 

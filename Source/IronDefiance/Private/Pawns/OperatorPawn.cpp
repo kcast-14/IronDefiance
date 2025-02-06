@@ -37,6 +37,8 @@ AOperatorPawn::AOperatorPawn()
 	m_CameraComponent->bUsePawnControlRotation = false;
 
 	m_MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement Component"));
+
+	m_CameraMode = ECameraMode::CM_TacticianMode;
 }
 
 

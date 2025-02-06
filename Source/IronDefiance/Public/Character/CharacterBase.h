@@ -153,8 +153,6 @@ private:
 
 	TArray<AEnemy*> m_TargetsInDangerZone;
 
-	AFOBActor* m_FOB;
-
 	AEnemy* m_CombatTarget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))

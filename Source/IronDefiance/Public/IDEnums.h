@@ -50,3 +50,12 @@ enum class EMovementStatus : uint8
 	MS_Dead UMETA(DisplayName = "Dead"),
 	DEFAULT_MAX UMETA(DisplayName = "Default")
 };
+
+UENUM(BlueprintType)
+enum class ETowerType : uint8
+{
+	TT_Crown UMETA(DisplayName= "Crown Tower"),
+	TT_Energy UMETA(DisplayName= "Energy Tower"),
+	TT_Comms UMETA(DisplayName = "Communications Tower"),
+	DEFAULT_MAX UMETA(DisplayName = "Default")
+};
