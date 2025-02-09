@@ -58,6 +58,7 @@ void AIDGameModeBase::RemoveTowerPointer(AFOBActor* FOB)
     m_Towers.Shrink();
     // We're destroying here beucase if the player loses the Game AND they don't close the application afterwards this will probably still be living in memory which will cause
     // some major issues down the line.
+    FOB->m_OnBaseDestroyed.Broadcast(this);
     FOB->Destroy();
     if (m_Towers.Num() == 0)
     {

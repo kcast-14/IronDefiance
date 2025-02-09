@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDangerZoneExited, AActor*, Target
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBaseDestroyed, AActor*, Target);
 
 class USphereComponent;
+class UCapsuleComponent;
 class UStaticMeshComponent;
 
 UCLASS()
@@ -43,6 +44,9 @@ public:
 
 
 public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Collision, meta = (AllowPrivateAccess = "true"))
+	UCapsuleComponent* m_CapsuleComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Collision, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* m_AgroSphere;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Mesh, meta = (AllowPrivateAccess = "true"))

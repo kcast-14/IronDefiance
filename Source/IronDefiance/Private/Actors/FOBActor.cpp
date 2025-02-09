@@ -2,6 +2,7 @@
 
 
 #include "Actors/FOBActor.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,7 +13,10 @@ AFOBActor::AFOBActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	m_CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Component"));
+	SetRootComponent(m_CapsuleComp);
 	m_Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Component"));
+	m_Mesh->SetupAttachment(GetRootComponent());
 
 	m_AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Agro Sphere"));
 	m_AgroSphere->SetupAttachment(m_Mesh);
@@ -53,7 +57,6 @@ bool AFOBActor::DecrementHealth(float Damage)
 
 void AFOBActor::Die()
 {
-	m_OnBaseDestroyed.Broadcast(this);
 	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->RemoveTowerPointer(this);
 }
 
