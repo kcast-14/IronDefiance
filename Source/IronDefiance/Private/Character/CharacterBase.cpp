@@ -23,6 +23,7 @@
 
 
 
+
 // Sets default values
 ACharacterBase::ACharacterBase()
 {
@@ -73,14 +74,14 @@ ACharacterBase::ACharacterBase()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();	
-	TMap<ETowerType, AFOBActor*> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
+	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
 	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapEnd);
 
 	for (auto& T : Towers)
 	{
-		T.Value->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
-		T.Value->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
+		T.Key->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
+		T.Key->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
 	}
 	m_CurrentHealth = m_Stats.MaxHealth;
 }

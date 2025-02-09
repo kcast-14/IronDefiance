@@ -99,8 +99,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupInputComponent() override;
 
-	virtual bool Raycast();
-	virtual AActor* Raycast(FVector StartLocation, FVector Direction);
+	virtual bool Raycast(FVector StartLocation, FVector Direction, FHitResult& HitResult);
 
 public:
 	void DisplayEnemyHealthBar();

@@ -10,6 +10,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDangerZoneEntered, AActor*, Target);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDangerZoneExited, AActor*, Target);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBaseDestroyed, AActor*, Target);
+
 class USphereComponent;
 class UStaticMeshComponent;
 
@@ -52,6 +54,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDangerZoneExited m_OnDangerZoneExited;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnBaseDestroyed m_OnBaseDestroyed;
 
 	FTimerHandle m_Timer;
 

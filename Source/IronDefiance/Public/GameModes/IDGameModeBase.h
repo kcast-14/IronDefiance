@@ -27,9 +27,12 @@ public:
 	TArray<AFOBActor*> GetEnergyTowers();
 	TArray<AFOBActor*> GetCommunicationsTowers();
 
-	FORCEINLINE TMap<ETowerType, AFOBActor*>& GetAllTowers() { return m_Towers; }
-	FORCEINLINE uint32 GetCurrentNumCrowns() { return m_Crowns; }
-	FORCEINLINE uint32 GetCurrentNumScraps() { return m_Scraps; }
+	FORCEINLINE TMap<AFOBActor*, ETowerType>& GetAllTowers() { return m_Towers; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetCurrentNumCrowns() { return m_Crowns; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetCurrentNumScraps() { return m_Scraps; }
+	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetCurrentAmountEnergy() { return m_UltimateProgress; }
 
 	FORCEINLINE void SetCurrentNumCrowns(uint32 Value) { m_Crowns = Value; }
@@ -38,13 +41,18 @@ public:
 
 	void AddTowerPointer(AFOBActor* FOB);
 
+	void RemoveTowerPointer(AFOBActor* FOB);
+
 	void IncrementCrowns(uint32 Value);
 	void IncrementScrap(uint32 Value);
 	void IncrementEnergy(float Value);
 
+	void WinGame();
+	void LoseGame();
+
 private:
 
-	TMap<ETowerType, AFOBActor*> m_Towers;
+	TMap<AFOBActor*, ETowerType> m_Towers;
 
 	float m_UltimateProgress = 0.f;
 

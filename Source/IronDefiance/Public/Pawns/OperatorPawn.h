@@ -35,7 +35,7 @@ public:
 
 	FORCEINLINE virtual USpringArmComponent* GetSpringArmComponent() { return m_SpringArmComponent; }
 
-	FORCEINLINE virtual ACharacterBase* GetTankToPlace() { return m_TankToPlace; }
+	FORCEINLINE virtual TSubclassOf<ACharacterBase> GetTankToPlace() { return m_TankToPlace; }
 
 	FORCEINLINE virtual ACharacterBase* GetTankToPilot() { return m_TankToPilot; }
 
@@ -63,7 +63,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
-	virtual void SetTankToPlace(ACharacterBase* Tank) { m_TankToPlace = Tank; }
+	virtual void SetTankToPlace(TSubclassOf<ACharacterBase> Tank) { m_TankToPlace = Tank; }
 
 private:
 
@@ -72,7 +72,7 @@ private:
 
 	//Which type of Tank should be places
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank To Place"))
-	ACharacterBase* m_TankToPlace = nullptr;
+	TSubclassOf<ACharacterBase> m_TankToPlace = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank To Pilot"))
 	ACharacterBase* m_TankToPilot = nullptr;

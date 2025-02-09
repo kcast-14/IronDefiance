@@ -258,20 +258,6 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 		FActorSpawnParameters SpawnParams;
 		ACharacterBase* Tank;
 		AFOBActor* Tower;
-		for (auto& T : LoadGameInstance->m_SaveInfo.Tanks)
-		{
-			Tank = GetWorld()->SpawnActor<ACharacterBase>(
-				ACharacterBase::StaticClass(),
-				T.Location, T.Rotation, SpawnParams
-			);
-
-			Tank->SetCurrentHealth(T.CurrentHealth);
-			Tank->SetCurrentAPRounds(T.CurrentAPRounds);
-			Tank->SetCurrentApcrRounds(T.CurrentApcrRounds);
-			Tank->SetCurrentExplosiveRounds(T.CurrentExplosiveRounds);
-			Tank->SetCurrentHeatRounds(T.CurrentHeatRounds);
-			Tank->SetStats(T.Stats);
-		}
 
 		for (auto& T : LoadGameInstance->m_SaveInfo.Towers)
 		{
@@ -279,22 +265,37 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 				AFOBActor::StaticClass(),
 				T.Location, T.Rotation, SpawnParams
 			);
-
+	
 			Tower->SetTowerType(T.Type);
 			Tower->SetHealth(T.Health);
 			Tower->SetDelay(T.TimerDelay);
 			Tower->SetEnergyRate(T.EnergyToAdd);
 			Tower->SetCrownsToAdd(T.CrownsToAdd);
 		}
-
-		m_WavePtr->SetWaveNumber(LoadGameInstance->m_SaveInfo.CurrentWaveNumber);
+	
+		for (auto& T : LoadGameInstance->m_SaveInfo.Tanks)
+		{
+			Tank = GetWorld()->SpawnActor<ACharacterBase>(
+				ACharacterBase::StaticClass(),
+				T.Location, T.Rotation, SpawnParams
+			);
+	
+			Tank->SetCurrentHealth(T.CurrentHealth);
+			Tank->SetCurrentAPRounds(T.CurrentAPRounds);
+			Tank->SetCurrentApcrRounds(T.CurrentApcrRounds);
+			Tank->SetCurrentExplosiveRounds(T.CurrentExplosiveRounds);
+			Tank->SetCurrentHeatRounds(T.CurrentHeatRounds);
+			Tank->SetStats(T.Stats);
+		}
+	
+	
+	
+		m_CurrentWaveNumber = LoadGameInstance->m_SaveInfo.CurrentWaveNumber;
 		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentNumCrowns(LoadGameInstance->m_SaveInfo.Crowns);
 		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentNumScraps(LoadGameInstance->m_SaveInfo.Scraps);
 		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentAmountEnergy(LoadGameInstance->m_SaveInfo.Energy);
 
-
-
-
+		bLoadedSave = true;
 	}
 }
 

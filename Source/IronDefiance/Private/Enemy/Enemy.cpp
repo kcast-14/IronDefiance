@@ -17,6 +17,7 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
+
 /**
 * Brought to you in part by De'Lano Wilcox and Nath
 */
@@ -49,14 +50,14 @@ void AEnemy::BeginPlay()
 
 	m_MovementStatus = EMovementStatus::MS_Idle;
 
-	TMap<ETowerType, AFOBActor*> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
+	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	int TowerToPick = FMath::RandRange(0, Towers.Num()-1);
 	int Index = 0;
 	for (auto& T : Towers)
 	{
 		if (Index == TowerToPick)
 		{
-			m_Target = T.Value;
+			m_Target = T.Key;
 			break;
 		}
 		Index++;

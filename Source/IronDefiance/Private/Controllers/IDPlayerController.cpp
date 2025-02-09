@@ -524,17 +524,9 @@ void AIDPlayerController::SetupInputComponent()
 	}
 }
 
-bool AIDPlayerController::Raycast()
-{
-	//TODO: Change this to function in a way that actually checks for something rather than just passing around booleans
-	return false;
-}
-
-AActor* AIDPlayerController::Raycast(FVector StartLocation, FVector Direction)
+bool AIDPlayerController::Raycast(FVector StartLocation, FVector Direction, FHitResult& HitResult)
 {
 	float CastLength = 10000.f;
-
-	FHitResult Result;
 
 	FVector Location;
 	FRotator Rotation;
@@ -542,13 +534,12 @@ AActor* AIDPlayerController::Raycast(FVector StartLocation, FVector Direction)
 	FVector EndLocation = StartLocation + (Direction * CastLength);
 	
 	FCollisionQueryParams CollisionParams;
-
-	if (GetWorld()->LineTraceSingleByChannel(Result, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, CollisionParams))
 	{
-		return Result.GetActor();
+		return true;
 	}
 
-	return nullptr;
+	return false;
 }
 
 void AIDPlayerController::AddEnemyLocation(AEnemy* Enemy, const FVector Loc)
@@ -699,7 +690,7 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 	else
 	{
 		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
-		m_Operator->SetTankToPlace(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+		m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 		RemoveOperatorHUD();
 		m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 		Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
@@ -738,7 +729,7 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 	else
 	{
 		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
-		m_Operator->SetTankToPlace(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+		m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 		Possess(m_Operator->GetTankToPilot());
 		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
@@ -793,32 +784,37 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 	// so on mouse and keyboard this should be fine.
 	if (DeprojectMousePositionToWorld(WorldLocation, WorldDirection))
 	{
-		AActor* HitActor = Raycast(WorldLocation, WorldDirection);
-		bool DidHit = IsHittingTankOrEnemy(HitActor);
-
-		if (m_Operator->GetTankToPlace() != nullptr)
+		FHitResult Result;
+		if (Raycast(WorldLocation, WorldDirection, Result))
 		{
-			if (DidHit)
+			bool DidHit = IsHittingTankOrEnemy(Result.GetActor());
+
+			if (m_Operator->GetTankToPlace() != nullptr)
 			{
-				return;
+				if (DidHit)
+				{
+					return;
+				}
+				else
+				{
+
+					PlaceTank(Result.Location, WorldDirection);
+				}
 			}
 			else
 			{
-				PlaceTank(WorldLocation, WorldDirection);
-			}
-		}
-		else
-		{
-			if (IsHittingAnotherTank(HitActor))
-			{
-				ToggleOperatorHUD();
-				m_Operator->CanPilotTank(true);
-				m_Operator->SetTankToPilot(HitActor);
-				m_CurrentControlledTank = m_Tanks.Find(Cast<ACharacterBase>(HitActor)); // It should be noted that if you simply place tanks in the world this isn't going to work.
-				Possess(Cast<APawn>(HitActor));
-			}
+				if (IsHittingAnotherTank(Result.GetActor()))
+				{
+					ToggleOperatorHUD();
+					m_Operator->CanPilotTank(true);
+					m_Operator->SetTankToPilot(Result.GetActor());
+					m_CurrentControlledTank = m_Tanks.Find(Cast<ACharacterBase>(Result.GetActor())); // It should be noted that if you simply place tanks in the world this isn't going to work.
+					Possess(Cast<APawn>(Result.GetActor()));
+				}
 
+			}
 		}
+		
 
 
 	}

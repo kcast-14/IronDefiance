@@ -17,7 +17,7 @@ UCLASS()
 class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
 
 public:
 	UIDGameInstance();
@@ -38,6 +38,17 @@ public:
 	AWave* GetWavePtr();
 
 	void SetWavePtr(AWave* Pointer) { m_WavePtr = Pointer; }
+
+	//This will potentially be moved to GameMode since there should be a new Game Mode made everytime we load a new Level. However it will be here for now because I can ensure that the value 
+	//it holds here will be the correct one for saving and loading.
+	int GetCurrentWaveNumber() { return m_CurrentWaveNumber; }
+
+	void SetCurrentWaveNumber(int Value) { m_CurrentWaveNumber = Value; }
+
+	bool IsLoadedSave() { return bLoadedSave; }
+
+	// Will set the bLoadedSave variable to the opposite of what is passed. So if you pass true, then it'll reset the variable to false, if you pass false (for whatever reason) it'll set it to true.
+	void IsFinishedLevelSetup(bool Value) { bLoadedSave = !Value; }
 
 protected:
 	virtual void Init() override;
@@ -63,8 +74,9 @@ private:
 
 	bool bIsAutosave = false;
 
-	uint32 m_Crowns = 0;
-	uint32 m_Scraps = 0;
+	bool bLoadedSave = false;
+
+	int m_CurrentWaveNumber = 0;
 
 
 };

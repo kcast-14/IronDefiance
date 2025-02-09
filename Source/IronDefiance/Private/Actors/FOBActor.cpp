@@ -53,9 +53,8 @@ bool AFOBActor::DecrementHealth(float Damage)
 
 void AFOBActor::Die()
 {
-	//GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleGameOverScreen();
-
-	//Display visuals and play sounds that reinforce defeat
+	m_OnBaseDestroyed.Broadcast(this);
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->RemoveTowerPointer(this);
 }
 
 // Called when the game starts or when spawned

@@ -72,15 +72,18 @@ void AOperatorPawn::SetTankToPilot(AActor* Tank)
 
 AActor* AOperatorPawn::PlaceTank(FVector WorldLocation, FVector WorldDirection)
 {
-	FActorSpawnParameters SpawnParameters;
+	FActorSpawnParameters SpawnParameters{};
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	FTransform TankTransform;
 	TankTransform.SetLocation(WorldLocation);
+	FRotator Rotation;
+	
 	//It should face forward by default but if it doesn't then we'll force it here
-	ACharacterBase* PlacedTank = GetWorld()->SpawnActor<ACharacterBase>(m_TankToPlace->StaticClass(), TankTransform);
+	ACharacterBase* PlacedTank = GetWorld()->SpawnActor<ACharacterBase>(m_TankToPlace, TankTransform);
 
 	if (PlacedTank)
 	{
+		m_TankToPlace = nullptr;
 		return PlacedTank;
 	}
 

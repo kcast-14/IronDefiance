@@ -1,6 +1,7 @@
 #include "Actors/Wave.h"
-#include "GameInstance/IDGameInstance.h"
 #include "Controllers/IDPlayerController.h"
+#include "GameInstance/IDGameInstance.h"
+#include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spawner/Spawner.h"
 #include "Enemy/Enemy.h"
@@ -59,7 +60,9 @@ void AWave::StartWave()
 void AWave::BeginPlay()
 {
 	Super::BeginPlay();
-	GetGameInstance<UIDGameInstance>()->SetWavePtr(this); 
+	GetGameInstance<UIDGameInstance>()->SetWavePtr(this);
+	LoadingSaveGame(GetGameInstance<UIDGameInstance>()->IsLoadedSave());
+	SetWaveNumber(GetGameInstance<UIDGameInstance>()->GetCurrentWaveNumber());
 	GetSpawners();
 
 	// We have to use these header guards because UE constructs objects in a different order in a shipping build 
@@ -75,18 +78,30 @@ void AWave::EnterTransition()
 {
 	if ((WaveNumber + 1) > m_MaxNumberOfWaves)
 	{
-		Win();
+		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->WinGame();
 	}
 	else
 	{
+		if (!bFromLoadedSave)
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				TransitionTimer,
+				this,
+				&AWave::NewWave,
+				TransitionPeriod,
+				false
+			);
+
+			return;
+		}
+
 		GetWorld()->GetTimerManager().SetTimer(
 			TransitionTimer,
 			this,
-			&AWave::NewWave,
+			&AWave::NewWaveNoIncrement,
 			TransitionPeriod,
 			false
 		);
-
 	}
 
 }
@@ -175,13 +190,13 @@ void AWave::NewWave()
 	this->StartWave();
 }
 
-void AWave::Win()
+void AWave::NewWaveNoIncrement()
 {
-	//GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleWinScreen();
+	if (GetWorld()->GetTimerManager().IsTimerActive(TransitionTimer))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TransitionTimer);
+	}
 
-	//Display visuals and play sounds that reinforce victory
+	GetGameInstance<UIDGameInstance>()->IsFinishedLevelSetup(true);
+	StartWave();
 }
-
-
-
-
