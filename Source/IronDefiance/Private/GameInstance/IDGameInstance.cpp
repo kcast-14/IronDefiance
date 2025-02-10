@@ -163,6 +163,7 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 			SaveGameInstance->m_SaveInfo.Mapname = MapName;
 
 			m_CurrentSaveGame = SaveGameInstance;
+			m_CurrentSlotInUse = Slot;
 		}
 		else
 		{

@@ -462,11 +462,8 @@ void AIDPlayerController::BeginPlay()
 	//See Wave.cpp: BeginPlay() for explaination on this
 	if (GetGameInstance<UIDGameInstance>()->GetWavePtr() != nullptr)
 	{
-#if !UE_BUILD_SHIPPING
 		DisplayWaveTransition();
 		GetGameInstance<UIDGameInstance>()->GetWavePtr()->EnterTransition();
-#endif
-
 		FInputModeUIOnly InputMode;
 		SetInputMode(InputMode);
 		bShowMouseCursor = true;
@@ -643,9 +640,11 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 		case ECameraMode::CM_ActionMode:
 		{
 			FRotator Rotation = m_Operator->GetTankToPilot()->GetSpringArmComponent()->GetComponentRotation();
-			Rotation.Yaw += LookVector.X;
-			Rotation.Pitch += LookVector.Y;
-			m_Operator->GetTankToPilot()->GetSpringArmComponent()->SetWorldRotation(Rotation);
+			Rotation.Yaw -= LookVector.X;
+			Rotation.Pitch -= LookVector.Y;
+			//m_Operator->GetTankToPilot()->GetSpringArmComponent()->SetRelativeRotation(Rotation);
+			AddYawInput(LookVector.X);
+			AddPitchInput(-LookVector.Y);
 			return;
 		}
 		case ECameraMode::CM_SniperMode:
@@ -679,36 +678,101 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 	{
 		return;
 	}
-	if (m_Operator->GetTankToPilot() != nullptr)
+
+	switch (m_Operator->GetCameraMode())
 	{
-		RemoveOperatorHUD();
-		m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
-		Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-		m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-		ToggleSniperHUD();
-	}
-	else
+	case ECameraMode::CM_TacticianMode:
 	{
-		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
-		m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
-		RemoveOperatorHUD();
-		m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
-		Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-		m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-		ToggleSniperHUD();
+		if (m_Operator->GetTankToPilot() != nullptr)
+		{
+			ToggleOperatorHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			ToggleSniperHUD();
+		}
+		else
+		{
+			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+			ToggleOperatorHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			ToggleSniperHUD();
+		}
+		break;
 	}
+	case ECameraMode::CM_ActionMode:
+	{
+		if (m_Operator->GetTankToPilot() != nullptr)
+		{
+			ToggleActionHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			ToggleSniperHUD();
+		}
+		else
+		{
+			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+			ToggleActionHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			ToggleSniperHUD();
+		}
+		break;
+	}
+	case ECameraMode::CM_SniperMode:
+	{
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+
 }
 
 void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 {
-	if (m_Operator->IsPilotingTank())
+	switch (m_Operator->GetCameraMode())
 	{
+	case ECameraMode::CM_TacticianMode:
+	{
+		// We're already in Tactician mode so do nothing.
+		break;
+	}
+	case ECameraMode::CM_ActionMode:
+	{
+		
+		ToggleActionHUD();
 		ToggleOperatorHUD();
 		Possess(m_Operator);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
 		m_CurrentControlledTank = -1;
+		break;
+	}
+	case ECameraMode::CM_SniperMode:
+	{
+		ToggleSniperHUD();
+		ToggleOperatorHUD();
+		Possess(m_Operator);
+		m_Operator->CanPilotTank(false);
+		m_Operator->SetTankToPilot(nullptr);
+		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
+		m_CurrentControlledTank = -1;
+		break;
+	}
+	default:
+	{
+		break;
+	}
 	}
 }
 
@@ -719,23 +783,62 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 		return;
 	}
 
-	if (m_Operator->GetTankToPilot() != nullptr)
+	switch (m_Operator->GetCameraMode())
 	{
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
-		Possess(m_Operator->GetTankToPilot());
-		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-		ToggleSniperHUD();
-	}
-	else
+	case ECameraMode::CM_TacticianMode:
 	{
-		//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
-		m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
-		Possess(m_Operator->GetTankToPilot());
-		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-		ToggleSniperHUD();
+		if (m_Operator->GetTankToPilot() != nullptr)
+		{
+			ToggleOperatorHUD();
+			Possess(m_Operator->GetTankToPilot());
+			m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			ToggleActionHUD();
+		}
+		else
+		{
+			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+			ToggleOperatorHUD();
+			Possess(m_Operator->GetTankToPilot());
+			m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			ToggleActionHUD();
+		}
+		break;
 	}
-
+	case ECameraMode::CM_ActionMode:
+	{
+		// We're already in Action mode so do nothing.
+		break;
+	}
+	case ECameraMode::CM_SniperMode:
+	{
+		if (m_Operator->GetTankToPilot() != nullptr)
+		{
+			ToggleSniperHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			ToggleActionHUD();
+		}
+		else
+		{
+			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
+			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
+			ToggleSniperHUD();
+			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
+			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			ToggleActionHUD();
+		}
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
 }
 
 void AIDPlayerController::Zoom(const FInputActionValue& Value)
@@ -744,11 +847,6 @@ void AIDPlayerController::Zoom(const FInputActionValue& Value)
 
 	switch (m_Operator->GetCameraMode())
 	{
-	case ECameraMode::CM_TacticianMode:
-	{
-		m_Operator->GetSpringArmComponent()->TargetArmLength += (ZoomValue * -50.f);
-		break;
-	}
 	case ECameraMode::CM_ActionMode:
 	{
 		m_Operator->GetTankToPilot()->GetSpringArmComponent()->TargetArmLength += (ZoomValue * -50.f);
@@ -805,11 +903,10 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 			{
 				if (IsHittingAnotherTank(Result.GetActor()))
 				{
-					ToggleOperatorHUD();
 					m_Operator->CanPilotTank(true);
 					m_Operator->SetTankToPilot(Result.GetActor());
 					m_CurrentControlledTank = m_Tanks.Find(Cast<ACharacterBase>(Result.GetActor())); // It should be noted that if you simply place tanks in the world this isn't going to work.
-					Possess(Cast<APawn>(Result.GetActor()));
+					EnterActionMode();
 				}
 
 			}
@@ -828,6 +925,45 @@ void AIDPlayerController::PlaceTank(FVector Location, FVector Direction)
 	{
 		m_Tanks.Add(PlacedTank);
 	}
+}
+
+void AIDPlayerController::EnterActionMode()
+{
+	switch (m_Operator->GetCameraMode())
+	{
+	case ECameraMode::CM_TacticianMode:
+	{
+		Possess(m_Operator->GetTankToPilot());
+		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+		ToggleOperatorHUD();
+		ToggleActionHUD();
+		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		break;
+	}
+	//We in theory shouldn't ever hit these two cases, so if we do then you need to follow the stack trace back to figure out how this was even possible.
+	case ECameraMode::CM_ActionMode:
+	{
+		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+		Possess(m_Operator->GetTankToPilot());
+		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		break;
+	}
+	case ECameraMode::CM_SniperMode:
+	{
+		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
+		ToggleSniperHUD();
+		Possess(m_Operator->GetTankToPilot());
+		ToggleActionHUD();
+		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		break;
+
+	}
+	default:
+	{
+		break;
+	}
+	}
+
 }
 
 

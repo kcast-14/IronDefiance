@@ -105,15 +105,10 @@ void ACharacterBase::Tick(float DeltaTime)
 // Called to bind functionality to input
 void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	//Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	FTransform SpawnTransform = GetActorTransform();
 
 	m_FPSPawn = GetWorld()->SpawnActor<AFPSPawn>(m_FPSCamPawn, SpawnTransform);
-	
-
-
 }
 
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

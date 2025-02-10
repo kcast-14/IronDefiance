@@ -39,6 +39,9 @@ public:
 
 	void SetWavePtr(AWave* Pointer) { m_WavePtr = Pointer; }
 
+	UFUNCTION(BlueprintCallable)
+	int GetCurrentSaveSlotNumber() { return m_CurrentSlotInUse; }
+
 	//This will potentially be moved to GameMode since there should be a new Game Mode made everytime we load a new Level. However it will be here for now because I can ensure that the value 
 	//it holds here will be the correct one for saving and loading.
 	int GetCurrentWaveNumber() { return m_CurrentWaveNumber; }
@@ -77,6 +80,8 @@ private:
 	bool bLoadedSave = false;
 
 	int m_CurrentWaveNumber = 0;
+
+	int m_CurrentSlotInUse = 0;
 
 
 };

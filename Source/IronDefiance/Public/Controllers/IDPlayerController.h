@@ -256,4 +256,6 @@ private:
 
 	void PlaceTank(FVector Location, FVector Direction);
 
+	void EnterActionMode();
+
 };

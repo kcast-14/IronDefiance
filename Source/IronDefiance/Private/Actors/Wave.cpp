@@ -68,10 +68,6 @@ void AWave::BeginPlay()
 	// We have to use these header guards because UE constructs objects in a different order in a shipping build 
 	// So if we're packaging a game to ship, this class doesn't get called until AFTER the player controller has been constructed.
 	// While in Editor, the actors in a level will be constructed first therefore we won't have a valid instance of Player Controller yet
-#if UE_BUILD_SHIPPING
-	GetWorld()->GetFirstPlayerController<AIDPlayerController>()->DisplayWaveTransition();
-	EnterTransition();
-#endif
 }
 
 void AWave::EnterTransition()
