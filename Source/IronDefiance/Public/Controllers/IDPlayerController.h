@@ -17,6 +17,7 @@ class AOperatorPawn;
 class UUserWidget;
 class UInputAction;
 class UInputMappingContext;
+class USoundCue;
 struct FInputActionValue;
 
 UCLASS()
@@ -26,15 +27,6 @@ class IRONDEFIANCE_API AIDPlayerController : public APlayerController
 
 public:
 	//Variables
-
-	/**Reference to the UMG Asset in the editor*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	TSubclassOf<UUserWidget> HUDOverlayAsset;
-
-	/**Variable to hold the Widget after creating it */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UUserWidget* HUDOverlay;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Health Bar Widget Class"))
 	TSubclassOf<UUserWidget> m_WHealthBar;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Enemy Health Bar Widget Instance"))
@@ -46,9 +38,10 @@ public:
 	TSubclassOf<UUserWidget> m_WWaveTransition;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Wave Transition Widget Instance"))
 	UUserWidget* m_WaveTransition;
-
+	/**Reference to the UMG Asset in the editor*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Operator Mode Widget Class"))
 	TSubclassOf<UUserWidget> m_WOperatorHUD;
+	/**Variable to hold the Widget after creating it */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Operator Mode Widget Instance"))
 	UUserWidget* m_OperatorHUD;
 
@@ -106,16 +99,9 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupInputComponent() override;
 
-	virtual bool Raycast();
-	virtual AActor* Raycast(FVector StartLocation, FVector Direction);
+	virtual bool Raycast(FVector StartLocation, FVector Direction, FHitResult& HitResult);
 
 public:
-
-	UFUNCTION(BlueprintCallable, Category = "HUD")
-	void DisplayHUDOverlay();
-	UFUNCTION(BlueprintCallable, Category = "HUD")
-	void RemoveHUDOverlay();
-
 	void DisplayEnemyHealthBar();
 	void RemoveEnemyHealthBar();
 	void DisplayTankHealthBar();
@@ -149,9 +135,6 @@ public:
 	void DisplayActionHUD();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemoveActionHUD();
-
-	UFUNCTION()
-	void ToggleHUDOverlay();
 
 	UFUNCTION()
 	void TogglePauseMenu();
@@ -211,9 +194,11 @@ public:
 	void Look(const FInputActionValue& Value);
 	void PauseGame(const FInputActionValue& Value);
 	UFUNCTION()
-	void SwitchCameraMode(const FInputActionValue& Value);
+	void SwitchToSniper(const FInputActionValue& Value);
 	UFUNCTION()
 	void SwitchToOperator(const FInputActionValue& Value);
+	UFUNCTION()
+	void SwitchToAction(const FInputActionValue& Value);
 	UFUNCTION()
 	void SwitchTanks(const FInputActionValue& Value);
 	UFUNCTION()
@@ -227,9 +212,6 @@ private:
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Player Mapping Context"))
 		UInputMappingContext* m_PlayerMappingContext;
 
-		//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Mapping Context"))
-		//UInputMappingContext* m_TankMappingContext;
-
 		//Action Mapping Variables
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Jump Action"))
 		UInputAction* m_JumpAction = nullptr;
@@ -241,12 +223,15 @@ private:
 		UInputAction* m_TurnAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Action"))
 		UInputAction* m_PauseAction = nullptr;
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Operator Action"))
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Tactician Mode"))
 		UInputAction* m_SwitchToOperator = nullptr;
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch Tank Action"))
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Action Mode"))
+		UInputAction* m_SwitchToAction = nullptr;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Sniper Mode"))
+		UInputAction* m_SwitchToSniper = nullptr;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch Tanks"))
 		UInputAction* m_SwitchTank = nullptr;
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch Camera Mode Action"))
-		UInputAction* m_SwitchCameraModeAction = nullptr;
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Zoom Action"))
 		UInputAction* m_ZoomAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Select Action"))
@@ -261,8 +246,16 @@ private:
 		UPROPERTY()
 		int m_CurrentControlledTank = 0;
 
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Sound"))
+		USoundCue* m_Pause;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Back Sound"))
+		USoundCue* m_Back;
+
+
 private:
 
 	void PlaceTank(FVector Location, FVector Direction);
+
+	void EnterActionMode();
 
 };

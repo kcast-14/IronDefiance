@@ -2,6 +2,7 @@
 
 
 #include "Actors/FOBActor.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,7 +13,10 @@ AFOBActor::AFOBActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	m_CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Component"));
+	SetRootComponent(m_CapsuleComp);
 	m_Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Component"));
+	m_Mesh->SetupAttachment(GetRootComponent());
 
 	m_AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Agro Sphere"));
 	m_AgroSphere->SetupAttachment(m_Mesh);
@@ -53,18 +57,18 @@ bool AFOBActor::DecrementHealth(float Damage)
 
 void AFOBActor::Die()
 {
-	//GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleGameOverScreen();
-
-	//Display visuals and play sounds that reinforce defeat
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->RemoveTowerPointer(this);
 }
 
 // Called when the game starts or when spawned
 void AFOBActor::BeginPlay()
 {
 	Super::BeginPlay();
-	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetFOBPointer(this);
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->AddTowerPointer(this);
 	m_AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AFOBActor::OnAgroOverlapBegin);
 	m_AgroSphere->OnComponentEndOverlap.AddDynamic(this, &AFOBActor::OnAgroOverlapEnd);
+
+	check(m_Type != ETowerType::DEFAULT_MAX);
 }
 
 // Called every frame
@@ -72,5 +76,36 @@ void AFOBActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	switch (m_Type)
+	{
+	case ETowerType::TT_Crown:
+	{
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_Timer))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_Timer, this, &AFOBActor::AddCrowns, m_Delay, false);
+		}
+		break;
+	}
+	case ETowerType::TT_Energy:
+	{
+		if (!GetWorld()->GetTimerManager().IsTimerActive(m_Timer))
+		{
+			GetWorld()->GetTimerManager().SetTimer(m_Timer, this, &AFOBActor::IncrementUltimate, m_Delay, false);
+		}
+		break;
+	}
+	}
+}
+
+void AFOBActor::AddCrowns()
+{
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->IncrementCrowns(m_CrownsToAdd);
+	GetWorld()->GetTimerManager().ClearTimer(m_Timer);
+}
+
+void AFOBActor::IncrementUltimate()
+{
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->IncrementEnergy(m_EnergyToAdd);
+	GetWorld()->GetTimerManager().ClearTimer(m_Timer);
 }
 

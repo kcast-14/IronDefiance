@@ -77,10 +77,6 @@ public:
 
 	FORCEINLINE virtual AFPSPawn* GetFPSPawn() { return m_FPSPawn; }
 
-	FORCEINLINE virtual ECameraMode GetCameraMode() { return m_CameraMode; }
-
-	FORCEINLINE virtual void SetCameraMode(ECameraMode Mode) { m_CameraMode = Mode; }
-
 	FORCEINLINE virtual float GetCameraSpeed() { return m_CameraSpeed; }
 
 	FORCEINLINE virtual float GetCurrentHealth() { return m_CurrentHealth; }
@@ -157,8 +153,6 @@ private:
 
 	TArray<AEnemy*> m_TargetsInDangerZone;
 
-	AFOBActor* m_FOB;
-
 	AEnemy* m_CombatTarget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))
@@ -176,9 +170,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|TankInfo", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Type"))
 	ETankType m_TankType = ETankType::DEFAULT_MAX;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
-	ECameraMode m_CameraMode = ECameraMode::CM_ThirdPerson;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Movement Status"))
 	EMovementStatus m_MovementStatus = EMovementStatus::DEFAULT_MAX;

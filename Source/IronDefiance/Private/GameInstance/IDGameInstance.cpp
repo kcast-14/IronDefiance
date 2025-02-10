@@ -2,15 +2,38 @@
 
 
 #include "GameInstance/IDGameInstance.h"
-#include "SaveGame/IDSaveGame.h"
-#include "Character/CharacterBase.h"
 #include "Actors/Wave.h"
+#include "Character/CharacterBase.h"
+#include "Actors/FOBActor.h"
+#include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "SaveGame/IDSaveGame.h"
 #include <thread>
 
 
 UIDGameInstance::UIDGameInstance()
 {
+
+}
+
+void UIDGameInstance::MakeEmptyGameSave(int SlotToUse)
+{
+	UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
+
+	m_CurrentSaveGame = SaveGameInstance;
+
+	if (SlotToUse != 0)
+	{
+		m_SaveArray[SlotToUse] = m_CurrentSaveGame;
+		m_CurrentSaveGame->CreateSlot(SlotToUse);
+		UGameplayStatics::SaveGameToSlot(m_CurrentSaveGame, m_CurrentSaveGame->SlotName, m_CurrentSaveGame->UserIndex);
+		return;
+	}
+	else
+	{
+		ensureMsgf(false, TEXT("Slot 0 is reserved for AutoSaves"));
+	}
+	return;
 
 }
 
@@ -75,9 +98,11 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 	*/
 
 	TArray<AActor*> Tanks;
+	TArray<AActor*> Towers;
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacterBase::StaticClass(), Tanks);
-	auto f = [&](TArray<AActor*> TankArray, int Slot, bool IsAutosave, TArray<UIDSaveGame*> SaveArray)
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFOBActor::StaticClass(), Towers);
+	auto f = [&](TArray<AActor*> TankArray, TArray<AActor*> TowersArray, int Slot, bool IsAutosave, TArray<UIDSaveGame*> SaveArray)
 	{
 		if (!m_CurrentSaveGame)
 		{
@@ -99,9 +124,31 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 				SaveGameInstance->m_SaveInfo.Tanks.Add(Info);
 			}
 
-			SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
-			SaveGameInstance->m_SaveInfo.Crowns = m_Crowns;
-			SaveGameInstance->m_SaveInfo.Scraps = m_Scraps;
+			for (auto& T : TowersArray)
+			{
+				AFOBActor* Tower = Cast<AFOBActor>(T);
+				FTowerInfo Info;
+				Info.Location = Tower->GetActorLocation();
+				Info.Rotation = Tower->GetActorRotation();
+				Info.Type = Tower->GetTowerType();
+				Info.Health = Tower->GetHealth();
+				Info.TimerDelay = Tower->GetDelay();
+				Info.EnergyToAdd = Tower->GetEnergyRate();
+				Info.CrownsToAdd = Tower->GetCrownsToAdd();
+				SaveGameInstance->m_SaveInfo.Towers.Add(Info);
+			}
+
+			if (m_WavePtr != nullptr)
+			{
+				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
+			}
+			else
+			{
+				SaveGameInstance->m_SaveInfo.CurrentWaveNumber = 0;
+			}
+			SaveGameInstance->m_SaveInfo.Crowns = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentNumCrowns();
+			SaveGameInstance->m_SaveInfo.Scraps = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentNumScraps();
+			SaveGameInstance->m_SaveInfo.Energy = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentAmountEnergy();
 			FString InDate = FDateTime::Now().GetDate().ToString();
 			FString InTime = FDateTime::Now().GetTimeOfDay().ToString();
 			FString Date;
@@ -116,6 +163,7 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 			SaveGameInstance->m_SaveInfo.Mapname = MapName;
 
 			m_CurrentSaveGame = SaveGameInstance;
+			m_CurrentSlotInUse = Slot;
 		}
 		else
 		{
@@ -136,9 +184,24 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 				m_CurrentSaveGame->m_SaveInfo.Tanks.Add(Info);
 			}
 
+			for (auto& T : TowersArray)
+			{
+				AFOBActor* Tower = Cast<AFOBActor>(T);
+				FTowerInfo Info;
+				Info.Location = Tower->GetActorLocation();
+				Info.Rotation = Tower->GetActorRotation();
+				Info.Type = Tower->GetTowerType();
+				Info.Health = Tower->GetHealth();
+				Info.TimerDelay = Tower->GetDelay();
+				Info.EnergyToAdd = Tower->GetEnergyRate();
+				Info.CrownsToAdd = Tower->GetCrownsToAdd();
+				m_CurrentSaveGame->m_SaveInfo.Towers.Add(Info);
+			}
+
 			m_CurrentSaveGame->m_SaveInfo.CurrentWaveNumber = m_WavePtr->GetWaveNumber();
-			m_CurrentSaveGame->m_SaveInfo.Crowns = m_Crowns;
-			m_CurrentSaveGame->m_SaveInfo.Scraps = m_Scraps;
+			m_CurrentSaveGame->m_SaveInfo.Crowns = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentNumCrowns();
+			m_CurrentSaveGame->m_SaveInfo.Scraps = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentNumScraps();
+			m_CurrentSaveGame->m_SaveInfo.Energy = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetCurrentAmountEnergy();
 			FString Date;
 			FString Time;
 			ParseDate(FDateTime::Now().GetDate().ToString(), Date);
@@ -172,7 +235,7 @@ void UIDGameInstance::SaveGame(int SlotToUse, bool IsAutoSaving)
 		return;
 	};
 
-	std::thread th(f, Tanks, SlotToUse, bIsAutosave, m_SaveArray);
+	std::thread th(f, Tanks, Towers, SlotToUse, bIsAutosave, m_SaveArray);
 
 	th.detach();
 }
@@ -195,13 +258,29 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 		
 		FActorSpawnParameters SpawnParams;
 		ACharacterBase* Tank;
+		AFOBActor* Tower;
+
+		for (auto& T : LoadGameInstance->m_SaveInfo.Towers)
+		{
+			Tower = GetWorld()->SpawnActor<AFOBActor>(
+				AFOBActor::StaticClass(),
+				T.Location, T.Rotation, SpawnParams
+			);
+	
+			Tower->SetTowerType(T.Type);
+			Tower->SetHealth(T.Health);
+			Tower->SetDelay(T.TimerDelay);
+			Tower->SetEnergyRate(T.EnergyToAdd);
+			Tower->SetCrownsToAdd(T.CrownsToAdd);
+		}
+	
 		for (auto& T : LoadGameInstance->m_SaveInfo.Tanks)
 		{
 			Tank = GetWorld()->SpawnActor<ACharacterBase>(
 				ACharacterBase::StaticClass(),
 				T.Location, T.Rotation, SpawnParams
 			);
-
+	
 			Tank->SetCurrentHealth(T.CurrentHealth);
 			Tank->SetCurrentAPRounds(T.CurrentAPRounds);
 			Tank->SetCurrentApcrRounds(T.CurrentApcrRounds);
@@ -209,13 +288,15 @@ void UIDGameInstance::LoadGame(FString SaveSlotName)
 			Tank->SetCurrentHeatRounds(T.CurrentHeatRounds);
 			Tank->SetStats(T.Stats);
 		}
+	
+	
+	
+		m_CurrentWaveNumber = LoadGameInstance->m_SaveInfo.CurrentWaveNumber;
+		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentNumCrowns(LoadGameInstance->m_SaveInfo.Crowns);
+		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentNumScraps(LoadGameInstance->m_SaveInfo.Scraps);
+		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->SetCurrentAmountEnergy(LoadGameInstance->m_SaveInfo.Energy);
 
-		m_WavePtr->SetWaveNumber(LoadGameInstance->m_SaveInfo.CurrentWaveNumber);
-		m_Crowns = LoadGameInstance->m_SaveInfo.Crowns;
-		m_Scraps = LoadGameInstance->m_SaveInfo.Scraps;
-
-
-
+		bLoadedSave = true;
 	}
 }
 

@@ -23,6 +23,7 @@
 
 
 
+
 // Sets default values
 ACharacterBase::ACharacterBase()
 {
@@ -49,7 +50,6 @@ ACharacterBase::ACharacterBase()
 
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	GetMesh()->SetOnlyOwnerSee(true);
 	GetMesh()->SetupAttachment(GetCapsuleComponent());
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
@@ -74,14 +74,15 @@ ACharacterBase::ACharacterBase()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();	
-
-	m_FOB = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
+	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
 	m_CombatSphere->OnComponentEndOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapEnd);
 
-	m_FOB->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
-	m_FOB->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
-
+	for (auto& T : Towers)
+	{
+		T.Key->m_OnDangerZoneEntered.AddDynamic(this, &ACharacterBase::OnEnemyEnteredDangerZone);
+		T.Key->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
+	}
 	m_CurrentHealth = m_Stats.MaxHealth;
 }
 
@@ -104,15 +105,10 @@ void ACharacterBase::Tick(float DeltaTime)
 // Called to bind functionality to input
 void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	//Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	FTransform SpawnTransform = GetActorTransform();
 
 	m_FPSPawn = GetWorld()->SpawnActor<AFPSPawn>(m_FPSCamPawn, SpawnTransform);
-	
-
-
 }
 
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -257,8 +253,6 @@ void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here
 
-	UE_LOG(LogTemp, Warning, TEXT("%s Is Shooting!"), *GetActorLabel());
-
 	check(m_ProjectileClass); // All classes should have a projectile class set in BP
 
 	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
@@ -358,7 +352,6 @@ void ACharacterBase::OnEnemyExitedDangerZone(AActor* Target)
 	int32 Index = m_TargetsInRange.Find(Enemy);
 	if (Index == -1)
 	{
-		m_TargetsInDangerZone.RemoveAt(Index);
 		return;
 	}
 

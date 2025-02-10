@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "IDEnums.h"
 #include "OperatorPawn.generated.h"
 
 class ACharacterBase;
@@ -34,7 +35,7 @@ public:
 
 	FORCEINLINE virtual USpringArmComponent* GetSpringArmComponent() { return m_SpringArmComponent; }
 
-	FORCEINLINE virtual ACharacterBase* GetTankToPlace() { return m_TankToPlace; }
+	FORCEINLINE virtual TSubclassOf<ACharacterBase> GetTankToPlace() { return m_TankToPlace; }
 
 	FORCEINLINE virtual ACharacterBase* GetTankToPilot() { return m_TankToPilot; }
 
@@ -43,6 +44,9 @@ public:
 	FORCEINLINE virtual bool IsPilotingTank() { return bIsPilotingTank; }
 
 	FORCEINLINE virtual void CanPilotTank(bool Can) { bIsPilotingTank = Can; }
+
+	FORCEINLINE virtual ECameraMode GetCameraMode() { return m_CameraMode; }
+	FORCEINLINE virtual void SetCameraMode(ECameraMode Mode) { m_CameraMode = Mode; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,7 +63,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
-	virtual void SetTankToPlace(ACharacterBase* Tank) { m_TankToPlace = Tank; }
+	virtual void SetTankToPlace(TSubclassOf<ACharacterBase> Tank) { m_TankToPlace = Tank; }
 
 private:
 
@@ -68,8 +72,13 @@ private:
 
 	//Which type of Tank should be places
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank To Place"))
-	ACharacterBase* m_TankToPlace = nullptr;
+	TSubclassOf<ACharacterBase> m_TankToPlace = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank To Pilot"))
 	ACharacterBase* m_TankToPilot = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
+	ECameraMode m_CameraMode = ECameraMode::DEFAULT_MAX;
+
+
 };

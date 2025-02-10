@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "IDEnums.h"
 #include "IDGameModeBase.generated.h"
 
 /**
@@ -22,11 +23,40 @@ public:
 	
 	AIDGameModeBase();
 
-	FORCEINLINE AFOBActor* GetFOBPointer() { return m_FOB; }
+	TArray<AFOBActor*> GetCrownTowers();
+	TArray<AFOBActor*> GetEnergyTowers();
+	TArray<AFOBActor*> GetCommunicationsTowers();
 
-	FORCEINLINE void SetFOBPointer(AFOBActor* FOB) { m_FOB = FOB; }
+	FORCEINLINE TMap<AFOBActor*, ETowerType>& GetAllTowers() { return m_Towers; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetCurrentNumCrowns() { return m_Crowns; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetCurrentNumScraps() { return m_Scraps; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetCurrentAmountEnergy() { return m_UltimateProgress; }
+
+	FORCEINLINE void SetCurrentNumCrowns(uint32 Value) { m_Crowns = Value; }
+	FORCEINLINE void SetCurrentNumScraps(uint32 Value) { m_Scraps = Value; }
+	FORCEINLINE void SetCurrentAmountEnergy(float Value) { m_UltimateProgress = Value; }
+
+	void AddTowerPointer(AFOBActor* FOB);
+
+	void RemoveTowerPointer(AFOBActor* FOB);
+
+	void IncrementCrowns(uint32 Value);
+	void IncrementScrap(uint32 Value);
+	void IncrementEnergy(float Value);
+
+	void WinGame();
+	void LoseGame();
 
 private:
 
-	AFOBActor* m_FOB;
+	TMap<AFOBActor*, ETowerType> m_Towers;
+
+	float m_UltimateProgress = 0.f;
+
+	uint32 m_Crowns = 1000;
+
+	uint32 m_Scraps = 0;
 };

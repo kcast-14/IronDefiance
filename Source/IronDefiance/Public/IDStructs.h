@@ -90,23 +90,23 @@ struct FTowerInfo
 {
 	GENERATED_BODY()
 
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FVector Location;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	FRotator  Rotation;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	ETowerType Type;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float Health;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float TimerDelay;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	uint32 CrownsToAdd;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float EnergyToAdd;
+
 };
 
-//USTRUCT(BlueprintType)
-//struct FEnemyInfo
-//{
-//	GENERATED_BODY()
-//
-//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-//	float m_CurrentHealth;
-//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-//	FTankStats Stats;
-//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-//	FVector Location;
-//	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-//	FRotator  Rotation;
-//
-//};
 
 USTRUCT(BlueprintType)
 struct FSaveInfo
@@ -124,6 +124,8 @@ struct FSaveInfo
 	uint32 Crowns;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
 	uint32 Scraps;
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
+	float Energy;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
 	FString Mapname;
 

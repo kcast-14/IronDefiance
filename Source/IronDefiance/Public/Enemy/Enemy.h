@@ -50,6 +50,9 @@ public:
 	UFUNCTION()
 	void OnTargetDestroyed(ACharacterBase* Enemy);
 
+	UFUNCTION()
+	void PickNextBase(AActor* DestroyedBase);
+
 
 	FORCEINLINE ETankType GetTankType() { return m_TankType;}
 
@@ -79,6 +82,8 @@ private:
 	void InterpToGoal();
 
 	void SetCombatTarget(ACharacterBase* Enemy);
+
+
 
 
 
@@ -127,7 +132,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Acceptance Radius"))
 	float m_AcceptanceRadius = 10.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Target Tower"))
 	AFOBActor* m_Target;
-
-	FAIMoveRequest m_CurrentMoveRequest;
 };

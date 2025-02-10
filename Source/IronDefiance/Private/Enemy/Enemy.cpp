@@ -17,6 +17,7 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
+
 /**
 * Brought to you in part by De'Lano Wilcox and Nath
 */
@@ -49,7 +50,19 @@ void AEnemy::BeginPlay()
 
 	m_MovementStatus = EMovementStatus::MS_Idle;
 
-	m_Target = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetFOBPointer();
+	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
+	int TowerToPick = FMath::RandRange(0, Towers.Num()-1);
+	int Index = 0;
+	for (auto& T : Towers)
+	{
+		if (Index == TowerToPick)
+		{
+			m_Target = T.Key;
+			m_Target->m_OnBaseDestroyed.AddDynamic(this, &AEnemy::PickNextBase);
+			break;
+		}
+		Index++;
+	}
 	MoveToTarget(m_Target);
 }
 
@@ -379,16 +392,15 @@ void AEnemy::MoveToTarget(AActor* Target)
 {
 	SetMovementStatus(EMovementStatus::MS_MoveToTarget);
 
-	FAIMoveRequest MoveRequest;
+	FAIMoveRequest MoveRequest{};
 	MoveRequest.SetGoalActor(Target);
 	MoveRequest.SetAcceptanceRadius(m_AcceptanceRadius);
 	MoveRequest.SetUsePathfinding(true);
 	
 	
 
-	FNavPathSharedPtr NavPath;
-	m_CurrentMoveRequest = MoveRequest;
-	FPathFollowingRequestResult Result;
+	FNavPathSharedPtr NavPath{};
+	FPathFollowingRequestResult Result{};
 
 	Result = m_AIController->MoveTo(MoveRequest, &NavPath);
 
@@ -490,6 +502,28 @@ void AEnemy::SetCombatTarget(ACharacterBase* Enemy)
 	//Cheesey workaround until I can figure out how to do this properly
 	m_CombatTarget->m_OnTankDestoryed.RemoveDynamic(this, &AEnemy::OnTargetDestroyed);
 	m_CombatTarget->m_OnTankDestoryed.AddDynamic(this, &AEnemy::OnTargetDestroyed);
+}
+
+void AEnemy::PickNextBase(AActor* DestroyedBase)
+{
+	AFOBActor* Base = Cast<AFOBActor>(DestroyedBase);
+	if (m_Target == Base)
+	{
+		TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
+		int TowerToPick = FMath::RandRange(0, Towers.Num() - 1);
+		int Index = 0;
+		for (auto& T : Towers)
+		{
+			if (Index == TowerToPick)
+			{
+				m_Target = T.Key;
+				m_Target->m_OnBaseDestroyed.AddDynamic(this, &AEnemy::PickNextBase);
+				break;
+			}
+			Index++;
+		}
+		MoveToTarget(m_Target);
+	}
 }
 
 void AEnemy::OnTargetDestroyed(ACharacterBase* Enemy)
