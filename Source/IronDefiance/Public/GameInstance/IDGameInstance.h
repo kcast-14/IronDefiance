@@ -22,6 +22,9 @@ class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
 public:
 	UIDGameInstance();
 
+
+	UFUNCTION(BlueprintCallable, Category= "Save")
+	TArray<UIDSaveGame*>& GetSavedGamesArray() { return m_SaveArray; }
 	UFUNCTION(BlueprintCallable, Category = "Save")
 	void MakeEmptyGameSave(int SlotToUse);
 
@@ -73,7 +76,7 @@ private:
 	UIDSaveGame* m_CurrentSaveGame = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Save", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Max Number Of Saves Slots"))
-	int m_MaxNumberOfSaveFiles = 11;
+	int m_MaxNumberOfSaveFiles = 4;
 
 	bool bIsAutosave = false;
 

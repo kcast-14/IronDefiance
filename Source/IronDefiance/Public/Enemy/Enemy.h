@@ -56,8 +56,12 @@ public:
 
 	FORCEINLINE ETankType GetTankType() { return m_TankType;}
 
+	FORCEINLINE float GetTowerDamage() { return m_TowerDamage; }
+
 	FORCEINLINE EMovementStatus GetMovementStatus() { return m_MovementStatus; }
 	FORCEINLINE EMovementStatus GetMovementStatus() const { return m_MovementStatus; }
+
+	FORCEINLINE FTimerHandle& GetTowerDamageTimer() { return m_DamageTowerTimer; }
 
 private:
 
@@ -119,6 +123,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Has Valid Target?"))
 	bool bHasValidTarget;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tower Damage Value"))
+	float m_TowerDamage = 5.f;
+
 	FTimerHandle m_FireTimerHandle;
 
 	AProjectileBase* m_Projectile;
@@ -134,4 +141,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Target Tower"))
 	AFOBActor* m_Target;
+
+	FTimerHandle m_DamageTowerTimer;
 };
