@@ -15,6 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBaseDestroyed, AActor*, Target);
 class USphereComponent;
 class UCapsuleComponent;
 class UStaticMeshComponent;
+class AEnemy;
 
 UCLASS()
 class IRONDEFIANCE_API AFOBActor : public AActor
@@ -31,7 +32,7 @@ public:
 	virtual void OnAgroOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
-	bool DecrementHealth(float Damage);
+	void DecrementHealth(float Damage, FTimerHandle& Timer);
 
 	UFUNCTION()
 	void Die();
@@ -62,7 +63,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnBaseDestroyed m_OnBaseDestroyed;
 
-	FTimerHandle m_Timer;
+	FTimerHandle m_ChargeTimer;
+
+
 
 
 
@@ -103,9 +106,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Timer Delay"))
 	float m_Delay = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Damage Delay"))
+	float m_DamageDelay = 0.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Number Of Crowns to Add"), meta = (ClampMin = "0"))
 	int32 m_CrownsToAdd = 20;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Amount of Energy to Add"))
 	float m_EnergyToAdd = .01f;
+
+	TArray<AEnemy*> m_EnemiesInAgro;
 };

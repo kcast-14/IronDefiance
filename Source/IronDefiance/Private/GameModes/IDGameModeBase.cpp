@@ -2,6 +2,7 @@
 
 
 #include "GameModes/IDGameModeBase.h"
+#include "Controllers/IDPlayerController.h"
 #include "Actors/FOBActor.h"
 
 AIDGameModeBase::AIDGameModeBase()
@@ -94,14 +95,10 @@ void AIDGameModeBase::IncrementEnergy(float Value)
 
 void AIDGameModeBase::WinGame()
 {
-    //GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleWinScreen();
-
-    //Display visuals and play sounds that reinforce victory
+    GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleWinScreen();
 }
 
 void AIDGameModeBase::LoseGame()
 {
-    //GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleGameOverScreen();
-
-    //Display visuals and play sounds that reinforce defeat
+    GetWorld()->GetFirstPlayerController<AIDPlayerController>()->ToggleLoseScreen();
 }
