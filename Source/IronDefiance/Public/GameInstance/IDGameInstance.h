@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+
 #include "IDGameInstance.generated.h"
 
 /**
@@ -12,6 +13,7 @@
 
 class AWave;
 class UIDSaveGame;
+class USettingsDataTable;
 
 UCLASS()
 class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
@@ -56,6 +58,10 @@ public:
 	// Will set the bLoadedSave variable to the opposite of what is passed. So if you pass true, then it'll reset the variable to false, if you pass false (for whatever reason) it'll set it to true.
 	void IsFinishedLevelSetup(bool Value) { bLoadedSave = !Value; }
 
+	FORCEINLINE USoundMix* GetSoundMix() { return m_SoundMix; }
+
+	FORCEINLINE USettingsDataTable* GetUserSettings() { return m_UserSettings; }
+
 protected:
 	virtual void Init() override;
 	virtual void PostInitProperties() override;
@@ -68,6 +74,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Wave", meta = (DisplayName = "Wave Instance"))
 	AWave* m_WavePtr;
+	UPROPERTY(EditDefaultsOnly, Category = "AV", meta = (DisplayName = "Sound Mix Class Instance"))
+	USoundMix* m_SoundMix;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AV", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "User Settings"))
+	USettingsDataTable* m_UserSettings;
 
 	UPROPERTY(VisibleAnywhere, Category = "Save", meta = (DisplayName = "Save Array"))
 	TArray<UIDSaveGame*> m_SaveArray;

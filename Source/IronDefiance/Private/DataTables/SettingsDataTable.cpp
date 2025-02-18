@@ -3,16 +3,59 @@
 
 #include "DataTables/SettingsDataTable.h"
 #include "JsonObjectConverter.h"
+#include "GameInstance/IDGameInstance.h"
+#include "GameModes/IDGameModeBase.h"
+#include "GameFramework/GameUserSettings.h"
+#include "Kismet/GameplayStatics.h"
 
-USettingsDataTable::USettingsDataTable()
+USettingsDataTable::USettingsDataTable(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer)
 {
 	FString Path = FPaths::ProjectSavedDir();
 	Path.Append("AVSettings.ini");
 	m_FilePath = Path;
 	if (!FPaths::FileExists(m_FilePath))
 	{
-		FFileHelper::SaveStringToFile(FString(),*m_FilePath);
+		WriteSettings();
+		
 	}
+	else
+	{
+		ReadSettings();
+	}
+}
+
+void USettingsDataTable::ApplySettings(UGameUserSettings* UserSettings)
+{
+
+	AIDGameModeBase* GameMode = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(this));
+	UIDGameInstance* GameInstance = Cast<UIDGameInstance>(UGameplayStatics::GetGameInstance(this));
+
+	if (!GameMode)
+	{
+		ensureMsgf(GameMode, TEXT("GameMode was not Valid!"));
+		return;
+	}
+
+	if (!GameInstance)
+	{
+		ensureMsgf(GameInstance, TEXT("GameInstance was not Valid!"));
+		return;
+	}
+	//Video
+	UserSettings->SetScreenResolution({ m_AVSettings.X,m_AVSettings.Y });
+	UserSettings->SetOverallScalabilityLevel((int32)m_AVSettings.Quality);
+	UserSettings->ApplySettings(false);
+
+	//Audio
+
+	
+	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), GameInstance->GetSoundMix(), GameMode->GetMaster(), m_AVSettings.MasterVolume);
+	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), GameInstance->GetSoundMix(), GameMode->GetMusic(), m_AVSettings.MusicVolume);
+	UGameplayStatics::SetSoundMixClassOverride(GetWorld(), GameInstance->GetSoundMix(), GameMode->GetSFX(), m_AVSettings.SFXVolume);
+
+	WriteSettings();
+
 }
 
 void USettingsDataTable::WriteSettings()
