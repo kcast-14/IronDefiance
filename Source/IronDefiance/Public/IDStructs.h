@@ -8,6 +8,8 @@ USTRUCT(BlueprintType)
 struct FTankStats
 {
 	GENERATED_BODY();
+
+	FTankStats() = default;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
 	float MaxHealth = 10.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
@@ -80,9 +82,9 @@ struct FTankInfo
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
 	FTankStats Stats;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	FVector Location;
+	FVector Location = { 0.f,0.f,0.f };
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	FRotator  Rotation;
+	FRotator  Rotation = { 0.f,0.f,0.f };
 };
 
 USTRUCT(BlueprintType)
@@ -91,19 +93,19 @@ struct FTowerInfo
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	FVector Location;
+	FVector Location = { 0.f,0.f,0.f };
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	FRotator  Rotation;
+	FRotator  Rotation = { 0.f,0.f,0.f };
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	ETowerType Type;
+	ETowerType Type = ETowerType::DEFAULT_MAX;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	float Health;
+	float Health = 0.f;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	float TimerDelay;
+	float TimerDelay = 0.f;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	uint32 CrownsToAdd;
+	uint32 CrownsToAdd = 0;
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameData")
-	float EnergyToAdd;
+	float EnergyToAdd = 0.f;
 
 };
 
