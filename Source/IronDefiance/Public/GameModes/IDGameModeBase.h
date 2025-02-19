@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Sound/SoundClass.h"
 #include "IDEnums.h"
 #include "IDGameModeBase.generated.h"
 
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelWon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelLost);
 
 class AFOBActor;
 
@@ -22,6 +26,12 @@ class IRONDEFIANCE_API AIDGameModeBase : public AGameModeBase
 public:
 	
 	AIDGameModeBase();
+
+	virtual void BeginPlay() override;
+
+	FORCEINLINE USoundClass* GetMaster() { return m_MasterSoundClass; }
+	FORCEINLINE USoundClass* GetMusic() { return m_MusicSoundClass; }
+	FORCEINLINE USoundClass* GetSFX() { return m_SFXSoundClass; }
 
 	TArray<AFOBActor*> GetCrownTowers();
 	TArray<AFOBActor*> GetEnergyTowers();
@@ -49,6 +59,19 @@ public:
 
 	void WinGame();
 	void LoseGame();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Sound", meta=(DisplayName="Master"))
+	USoundClass* m_MasterSoundClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Sound", meta=(DisplayName="Music"))
+	USoundClass* m_MusicSoundClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Sound", meta=(DisplayName="Sound Effects"))
+	USoundClass* m_SFXSoundClass;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelWon m_OnLevelWon;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelLost m_OnLevelLost;
 
 private:
 
