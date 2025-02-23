@@ -23,6 +23,7 @@ class USkeletalMeshComponent;
 class USphereComponent;
 class USpringArmComponent;
 class UParticleSystem;
+class UPoseableMeshComponent;
 
 
 UCLASS()
@@ -104,6 +105,7 @@ public:
 	USphereComponent* m_CombatSphere;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* m_SpringArmComponent;
+
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTankDestroyed m_OnTankDestoryed;
