@@ -11,6 +11,8 @@
  * TODO: Organize this class a bit better
  */
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnModeSwitch, ECameraMode, Mode, APawn*, Owner, ACharacterBase*, Tank);
+
 class AEnemy;
 class ACharacterBase;
 class AOperatorPawn;
@@ -136,6 +138,8 @@ public:
 	UPROPERTY()
 	int m_PoolSize = 0;
 
+	FOnModeSwitch m_OnModeSwitch;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -258,6 +262,8 @@ public:
 	void AddEnemyLocation(AEnemy* Enemy, const FVector Loc);
 	UFUNCTION()
 	void RemoveEnemyLocation(AEnemy* Enemy);
+
+	AOperatorPawn* GetOperatorPointer() { return m_Operator; }
 
 	void SetOperatorPointer(AOperatorPawn* Ptr) { m_Operator = Ptr; }
 
