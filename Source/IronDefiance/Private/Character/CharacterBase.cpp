@@ -12,6 +12,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Enemy/Enemy.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameModes/IDGameModeBase.h"
@@ -84,6 +85,8 @@ void ACharacterBase::BeginPlay()
 		T.Key->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
 	}
 	m_CurrentHealth = m_Stats.MaxHealth;
+
+	m_TankRotation = GetActorRotation();
 }
 
 // Called every frame
@@ -106,9 +109,13 @@ void ACharacterBase::Tick(float DeltaTime)
 void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	FTransform SpawnTransform = GetActorTransform();
+	FTransform SpawnTransform = GetMesh()->GetSocketTransform(TEXT("HeadSocket"));
+	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true);
 
 	m_FPSPawn = GetWorld()->SpawnActor<AFPSPawn>(m_FPSCamPawn, SpawnTransform);
+
+	GetMesh()->GetSocketByName("HeadSocket")->AttachActor(m_FPSPawn, GetMesh());
+	
 }
 
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

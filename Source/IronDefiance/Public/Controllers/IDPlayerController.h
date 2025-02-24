@@ -11,6 +11,9 @@
  * TODO: Organize this class a bit better
  */
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnModeSwitch, ECameraMode, Mode, APawn*, Owner, ACharacterBase*, Tank);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRotate, float, RotateVal);
+
 class AEnemy;
 class ACharacterBase;
 class AOperatorPawn;
@@ -60,10 +63,39 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget* PauseMenu;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Settings Menu Widget Class"))
+	TSubclassOf<UUserWidget> m_WSettingsMenu;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Settings Menu Widget Instance"))
+	UUserWidget* m_SettingsMenu;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Controls Menu Widget Class"))
+	TSubclassOf<UUserWidget> m_WControlMenu;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Controls Menu Widget Instance"))
+	UUserWidget* m_ControlMenu;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<UUserWidget> WMainMenu;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UUserWidget* MainMenu;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Ultimate Screen Widget Class"))
+	TSubclassOf<UUserWidget> m_WUltScreen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Ultimate Screen Widget Instance"))
+	UUserWidget* m_UltScreen;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Command Menu Widget Class"))
+	TSubclassOf<UUserWidget> m_WCommandMenu;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Command Menu Widget Instance"))
+	UUserWidget* m_CommandMenu;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Win Screen Widget Class"))
+	TSubclassOf<UUserWidget> m_WWinScreen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Win Screen Widget Instance"))
+	UUserWidget* m_WinScreen;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Lose Screen Widget Class"))
+	TSubclassOf<UUserWidget> m_WLoseScreen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Lose Screen Widget Instance"))
+	UUserWidget* m_LoseScreen;
 
 
 	bool bHUDOverlayVisible = false;
@@ -73,6 +105,10 @@ public:
 	bool bTankHealthBarVisible = false;
 
 	bool bPauseMenuVisible = false;
+
+	bool bSettingsMenuVisible = false;
+	
+	bool bControlsMenuVisible = false;
 
 	bool bMainMenuVisible = false;
 
@@ -84,13 +120,28 @@ public:
 
 	bool bActionHUDVisible = false;
 
+	bool bUltScreenVisible = false;
+
 	bool bIsTopDown = false;
 
+	bool bCommandMenuVisible = false;
+	
+	bool bLoseScreenVisible = false;
+
+	bool bWinScreenVisible = false;
+
+	UPROPERTY()
 	FVector TankLocation;
 
+	UPROPERTY()
 	TMap<AEnemy*, FVector> m_EnemyLocations;
 
+	UPROPERTY()
 	int m_PoolSize = 0;
+
+	FOnModeSwitch m_OnModeSwitch;
+
+	FOnRotate m_OnRotate;
 
 protected:
 
@@ -112,6 +163,26 @@ public:
 
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayUltScreen();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveUltScreen();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayCommandMenu();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveCommandMenu();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayWinScreen();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveWinScreen();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayLoseScreen();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveLoseScreen();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void DisplayMainMenu();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemoveMainMenu();
@@ -120,6 +191,16 @@ public:
 	void DisplayPauseMenu();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemovePauseMenu();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayControlsMenu();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveControlsMenu();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplaySettingsMenu();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveSettingsMenu();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void DisplayOperatorHUD();
@@ -137,7 +218,20 @@ public:
 	void RemoveActionHUD();
 
 	UFUNCTION()
+	void ToggleUltimateScreen();
+	UFUNCTION()
+	void ToggleCommandMenu();
+	UFUNCTION()
+	void ToggleWinScreen();
+	UFUNCTION()
+	void ToggleLoseScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void TogglePauseMenu();
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void ToggleControlsMenu();
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void ToggleSettingsMenu();
 	UFUNCTION()
 	void ToggleOperatorHUD();
 	UFUNCTION()
@@ -172,6 +266,8 @@ public:
 	UFUNCTION()
 	void RemoveEnemyLocation(AEnemy* Enemy);
 
+	AOperatorPawn* GetOperatorPointer() { return m_Operator; }
+
 	void SetOperatorPointer(AOperatorPawn* Ptr) { m_Operator = Ptr; }
 
 	bool IsHittingAnotherTank(AActor* Actor);
@@ -191,7 +287,12 @@ public:
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
 	UFUNCTION()
+	void OpenCommandMenu(const FInputActionValue& Value);
+	UFUNCTION()
 	void Look(const FInputActionValue& Value);
+	UFUNCTION()
+	void Turn(const FInputActionValue& Value);
+
 	void PauseGame(const FInputActionValue& Value);
 	UFUNCTION()
 	void SwitchToSniper(const FInputActionValue& Value);
@@ -223,6 +324,8 @@ private:
 		UInputAction* m_TurnAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Action"))
 		UInputAction* m_PauseAction = nullptr;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Command Menu Action"))
+		UInputAction* m_CommandMenuAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Tactician Mode"))
 		UInputAction* m_SwitchToOperator = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Switch To Action Mode"))

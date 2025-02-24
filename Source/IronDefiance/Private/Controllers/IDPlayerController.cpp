@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Character/CharacterBase.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Enemy/Enemy.h"
 #include "GameInstance/IDGameInstance.h"
@@ -81,6 +82,104 @@ void AIDPlayerController::RemoveWaveTransition()
 	}
 }
 
+void AIDPlayerController::DisplayCommandMenu_Implementation()
+{
+	if (m_CommandMenu)
+	{
+		bCommandMenuVisible = true;
+		m_CommandMenu->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveCommandMenu_Implementation()
+{
+	if (m_CommandMenu)
+	{
+		bCommandMenuVisible = false;
+		m_CommandMenu->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::DisplayUltScreen_Implementation()
+{
+	if (m_UltScreen)
+	{
+		bUltScreenVisible = true;
+		m_UltScreen->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveUltScreen_Implementation()
+{
+	//Whether or not we show the mouse cursor will have to be determined by which HUD they had displayed at the time of using the Ult
+
+	if (m_UltScreen)
+	{
+		bUltScreenVisible = false;
+		m_UltScreen->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = false;
+	}
+}
+
+void AIDPlayerController::DisplayWinScreen_Implementation()
+{
+	if (m_WinScreen)
+	{
+		bWinScreenVisible = true;
+		m_WinScreen->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveWinScreen_Implementation()
+{
+	if (m_WinScreen)
+	{
+		bWinScreenVisible = false;
+		m_WinScreen->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = false;
+	}
+}
+
+void AIDPlayerController::DisplayLoseScreen_Implementation()
+{
+	if (m_LoseScreen)
+	{
+		bLoseScreenVisible = true;
+		m_LoseScreen->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveLoseScreen_Implementation()
+{
+	if (m_LoseScreen)
+	{
+		bLoseScreenVisible = false;
+		m_LoseScreen->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = false;
+	}
+}
+
 
 void AIDPlayerController::DisplayMainMenu_Implementation()
 {
@@ -123,6 +222,7 @@ void AIDPlayerController::DisplayPauseMenu_Implementation()
 		IgnoreMoveInput = true;
 		FInputModeGameAndUI InputModeGameUI;
 		SetInputMode(InputModeGameUI);
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
 		bShowMouseCursor = true;
 	}
 }
@@ -135,6 +235,7 @@ void AIDPlayerController::RemovePauseMenu_Implementation()
 		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
 		FInputModeGameOnly InputModeGameOnly;
 		SetInputMode(InputModeGameOnly);
+		UGameplayStatics::SetGamePaused(GetWorld(), false);
 		//if (!bLoadGameScreenVisible && !bSaveGameMenuVisible)
 		//{
 		//	IgnoreLookInput = false;
@@ -145,6 +246,54 @@ void AIDPlayerController::RemovePauseMenu_Implementation()
 
 	}
 
+}
+
+void AIDPlayerController::DisplayControlsMenu_Implementation()
+{
+	if (m_ControlMenu)
+	{
+		bControlsMenuVisible = true;
+		m_ControlMenu->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveControlsMenu_Implementation()
+{
+	if (m_ControlMenu)
+	{
+		bControlsMenuVisible = false;
+		m_ControlMenu->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::DisplaySettingsMenu_Implementation()
+{
+	if (m_SettingsMenu)
+	{
+		bSettingsMenuVisible = true;
+		m_SettingsMenu->SetVisibility(ESlateVisibility::Visible);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
+void AIDPlayerController::RemoveSettingsMenu_Implementation()
+{
+	if (m_OperatorHUD)
+	{
+		bSettingsMenuVisible = false;
+		m_SettingsMenu->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
 }
 
 void AIDPlayerController::DisplayOperatorHUD_Implementation()
@@ -219,6 +368,68 @@ void AIDPlayerController::RemoveActionHUD_Implementation()
 	}
 }
 
+void AIDPlayerController::ToggleUltimateScreen()
+{
+	if (bUltScreenVisible)
+	{
+		RemoveUltScreen();
+	}
+	else
+	{
+		DisplayUltScreen();
+	}
+}
+
+void AIDPlayerController::ToggleCommandMenu()
+{
+
+	switch (m_Operator->GetCameraMode())
+	{
+	case ECameraMode::CM_TacticianMode:
+	{
+		if (bCommandMenuVisible)
+		{
+			RemoveCommandMenu();
+		}
+		else
+		{
+			DisplayCommandMenu();
+		}
+	}
+	case ECameraMode::CM_ActionMode:
+	case ECameraMode::CM_SniperMode:
+	default:
+	{
+		break;
+	}
+	}
+
+}
+
+void AIDPlayerController::ToggleWinScreen()
+{
+	if (bWinScreenVisible)
+	{
+		RemoveWinScreen();
+	}
+	else
+	{
+		DisplayWinScreen();
+	}
+}
+
+void AIDPlayerController::ToggleLoseScreen()
+{
+	if (bLoseScreenVisible)
+	{
+		RemoveLoseScreen();
+	}
+	else
+	{
+		DisplayLoseScreen();
+	}
+}
+
 void AIDPlayerController::TogglePauseMenu()
 {
 	//For right now it seems that we can't display 2 HUDs AND interact with the one that should be "on top", therefore we have to do this
@@ -272,6 +483,30 @@ void AIDPlayerController::TogglePauseMenu()
 			break;
 		}
 		DisplayPauseMenu();
+	}
+}
+
+void AIDPlayerController::ToggleControlsMenu()
+{
+	if (bControlsMenuVisible)
+	{
+
+	}
+	else
+	{
+
+	}
+}
+
+void AIDPlayerController::ToggleSettingsMenu()
+{
+	if (bSettingsMenuVisible)
+	{
+
+	}
+	else
+	{
+
 	}
 }
 
@@ -348,15 +583,17 @@ void AIDPlayerController::SwitchTanks(const FInputActionValue& Value)
 
 	//Basically we'll cycle through the array going to the right until we reach the end, once we reach the end
 	//We'll reset back to the first tank and the player will have to keep cycling.
-	if (m_CurrentControlledTank < m_Tanks.Num() )
+	if (m_CurrentControlledTank <= m_Tanks.Num() -1 )
 	{
 		m_CurrentControlledTank++;
 		m_Operator->SetTankToPilot(m_Tanks[m_CurrentControlledTank]);
+		Possess(m_Operator->GetTankToPilot());
 		return;
 	}
 
 	m_CurrentControlledTank = 0;
 	m_Operator->SetTankToPilot(m_Tanks[m_CurrentControlledTank]);
+	Possess(m_Operator->GetTankToPilot());
 }
 
 void AIDPlayerController::MakeHealthBarWidgets()
@@ -439,6 +676,54 @@ void AIDPlayerController::BeginPlay()
 	m_ActionHUD->AddToViewport();
 	m_ActionHUD->SetVisibility(ESlateVisibility::Hidden);
 
+	check(m_WUltScreen);
+	m_UltScreen = CreateWidget<UUserWidget>(this, m_WUltScreen);
+
+	check(m_UltScreen);
+
+	m_UltScreen->AddToViewport();
+	m_UltScreen->SetVisibility(ESlateVisibility::Hidden);
+
+	check(m_WCommandMenu);
+
+	m_CommandMenu = CreateWidget<UUserWidget>(this, m_WCommandMenu);
+
+	check(m_CommandMenu);
+
+	m_CommandMenu->AddToViewport();
+	m_CommandMenu->SetDesiredSizeInViewport({ 512.f, 512.f });
+	m_CommandMenu->SetVisibility(ESlateVisibility::Hidden);
+
+
+	check(m_WWinScreen);
+
+	m_WinScreen = CreateWidget<UUserWidget>(this, m_WWinScreen);
+
+	check(m_WinScreen);
+	m_WinScreen->AddToViewport();
+	m_WinScreen->SetVisibility(ESlateVisibility::Hidden);
+
+	check(m_WLoseScreen);
+	m_LoseScreen = CreateWidget<UUserWidget>(this, m_WLoseScreen);
+	
+	check(m_LoseScreen);
+	m_LoseScreen->AddToViewport();
+	m_LoseScreen->SetVisibility(ESlateVisibility::Hidden);
+
+	check(m_WSettingsMenu);
+	m_SettingsMenu = CreateWidget<UUserWidget>(this, m_WSettingsMenu);
+
+	check(m_SettingsMenu);
+	m_SettingsMenu->AddToViewport();
+	m_SettingsMenu->SetVisibility(ESlateVisibility::Hidden);
+
+	check(m_WControlMenu);
+	m_ControlMenu = CreateWidget<UUserWidget>(this, m_WControlMenu);
+
+	check(m_ControlMenu);
+	m_ControlMenu->AddToViewport();
+	m_ControlMenu->SetVisibility(ESlateVisibility::Hidden);
+
 	/**
 	* We'll uncomment everything below once we have more direction on what will actually be needed and not needed
 	*/
@@ -457,9 +742,6 @@ void AIDPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(m_PlayerMappingContext, 0);
 	}
 
-
-
-	//See Wave.cpp: BeginPlay() for explaination on this
 	if (GetGameInstance<UIDGameInstance>()->GetWavePtr() != nullptr)
 	{
 		DisplayWaveTransition();
@@ -468,6 +750,8 @@ void AIDPlayerController::BeginPlay()
 		SetInputMode(InputMode);
 		bShowMouseCursor = true;
 	}
+
+	
 }
 
 
@@ -508,7 +792,9 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Completed, this, &AIDPlayerController::StopJumping);
 		EnhancedInputComponent->BindAction(m_MoveAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Move);
 		EnhancedInputComponent->BindAction(m_LookAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Look);
+		EnhancedInputComponent->BindAction(m_TurnAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Turn);
 		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::PauseGame);
+		EnhancedInputComponent->BindAction(m_CommandMenuAction, ETriggerEvent::Triggered, this, &AIDPlayerController::OpenCommandMenu);
 		EnhancedInputComponent->BindAction(m_SwitchTank, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchTanks);
 		EnhancedInputComponent->BindAction(m_SwitchToOperator, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToOperator);
 		EnhancedInputComponent->BindAction(m_SwitchToAction, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToAction);
@@ -607,6 +893,10 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	}
 	case ECameraMode::CM_ActionMode:
 	{
+		if (IsInputKeyDown(EKeys::A) || IsInputKeyDown(EKeys::D))
+		{
+			break;
+		}
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorForwardVector(), (MoveVector.Y * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorRightVector(), (MoveVector.X * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		break;
@@ -614,11 +904,6 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	case ECameraMode::CM_SniperMode:
 		//We probably need to do something with a camera here but maybe not
 	{
-		FVector Location = m_Operator->GetTankToPilot()->GetCameraComponent()->GetComponentTransform().GetLocation();
-
-		Location.X += (MoveVector.X * m_Operator->GetTankToPilot()->GetCameraSpeed());
-		Location.Y += (MoveVector.Y * m_Operator->GetTankToPilot()->GetCameraSpeed());
-		break;
 	}
 	default:
 	{
@@ -627,6 +912,17 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	}
 
 
+}
+
+void AIDPlayerController::OpenCommandMenu(const FInputActionValue& Value)
+{
+	// For now it will just open and close the command menu
+	// However, in the future we'll need to determine which tank was right clicked, if any, and open the command menu and all commands should be specific to that particular tank
+
+	FVector2D PositionInViewport;
+	GetMousePosition(PositionInViewport.X, PositionInViewport.Y);
+	m_CommandMenu->SetPositionInViewport(PositionInViewport);
+	ToggleCommandMenu();
 }
 
 void AIDPlayerController::Look(const FInputActionValue& Value)
@@ -639,23 +935,15 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 		{
 		case ECameraMode::CM_ActionMode:
 		{
-			FRotator Rotation = m_Operator->GetTankToPilot()->GetSpringArmComponent()->GetComponentRotation();
-			Rotation.Yaw -= LookVector.X;
-			Rotation.Pitch -= LookVector.Y;
-			//m_Operator->GetTankToPilot()->GetSpringArmComponent()->SetRelativeRotation(Rotation);
 			AddYawInput(LookVector.X);
 			AddPitchInput(-LookVector.Y);
 			return;
 		}
 		case ECameraMode::CM_SniperMode:
 		{
-			FRotator Rotation = GetPawn()->GetActorRotation();
-			Rotation.Yaw += LookVector.X;
-			Rotation.Pitch += LookVector.Y;
 			AddYawInput(LookVector.X);
 			AddPitchInput(-LookVector.Y);
 			break;
-
 		}
 		default:
 		{
@@ -665,6 +953,13 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 	}
 	return;
 
+}
+
+void AIDPlayerController::Turn(const FInputActionValue& Value)
+{
+	float TurnValue = Value.Get<float>();
+
+	m_OnRotate.Broadcast(TurnValue * 10.f);
 }
 
 void AIDPlayerController::PauseGame(const FInputActionValue& Value)
@@ -687,8 +982,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 		{
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
 			ToggleSniperHUD();
 		}
 		else
@@ -697,8 +992,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
 			ToggleSniperHUD();
 		}
 		break;
@@ -709,8 +1004,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 		{
 			ToggleActionHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
 			ToggleSniperHUD();
 		}
 		else
@@ -719,8 +1014,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleActionHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
 			ToggleSniperHUD();
 		}
 		break;
@@ -755,6 +1050,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator, m_Operator->GetTankToPilot());
 		m_CurrentControlledTank = -1;
 		break;
 	}
@@ -766,6 +1062,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator, m_Operator->GetTankToPilot());
 		m_CurrentControlledTank = -1;
 		break;
 	}
@@ -778,6 +1075,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 
 void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 {
+	//Supposedly crashing in shipping - Unable to reproduce
 	if (m_Tanks.IsEmpty())
 	{
 		return;
@@ -791,8 +1089,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 		{
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot());
-			m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		else
@@ -801,8 +1099,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot());
-			m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		break;
@@ -817,9 +1115,9 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 		if (m_Operator->GetTankToPilot() != nullptr)
 		{
 			ToggleSniperHUD();
-			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		else
@@ -827,9 +1125,9 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleSniperHUD();
-			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
-			m_Operator->GetTankToPilot()->GetFPSPawn()->SetActorLocation(m_Operator->GetTankToPilot()->GetActorLocation());
+			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		break;
@@ -895,7 +1193,6 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 				}
 				else
 				{
-
 					PlaceTank(Result.Location, WorldDirection);
 				}
 			}
@@ -929,28 +1226,27 @@ void AIDPlayerController::PlaceTank(FVector Location, FVector Direction)
 
 void AIDPlayerController::EnterActionMode()
 {
+
 	switch (m_Operator->GetCameraMode())
 	{
 	case ECameraMode::CM_TacticianMode:
 	{
 		Possess(m_Operator->GetTankToPilot());
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 		ToggleOperatorHUD();
 		ToggleActionHUD();
 		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
 		break;
 	}
 	//We in theory shouldn't ever hit these two cases, so if we do then you need to follow the stack trace back to figure out how this was even possible.
 	case ECameraMode::CM_ActionMode:
 	{
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 		Possess(m_Operator->GetTankToPilot());
 		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
 		break;
 	}
 	case ECameraMode::CM_SniperMode:
 	{
-		m_Operator->GetTankToPilot()->SetActorLocation(m_Operator->GetTankToPilot()->GetFPSPawn()->GetActorLocation());
 		ToggleSniperHUD();
 		Possess(m_Operator->GetTankToPilot());
 		ToggleActionHUD();

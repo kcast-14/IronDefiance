@@ -59,3 +59,13 @@ enum class ETowerType : uint8
 	TT_Comms UMETA(DisplayName = "Communications Tower"),
 	DEFAULT_MAX UMETA(DisplayName = "Default")
 };
+
+UENUM()
+enum class EProjPoolMethod : uint8
+{
+	None,
+	AutoRelease,
+	ManualRelease,
+	ManualRelease_OnComplete UMETA(Hidden),
+	FreeInPool UMETA(Hidden),
+};

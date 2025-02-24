@@ -64,20 +64,10 @@ void AWave::BeginPlay()
 	LoadingSaveGame(GetGameInstance<UIDGameInstance>()->IsLoadedSave());
 	SetWaveNumber(GetGameInstance<UIDGameInstance>()->GetCurrentWaveNumber());
 	GetSpawners();
-
-	// We have to use these header guards because UE constructs objects in a different order in a shipping build 
-	// So if we're packaging a game to ship, this class doesn't get called until AFTER the player controller has been constructed.
-	// While in Editor, the actors in a level will be constructed first therefore we won't have a valid instance of Player Controller yet
 }
 
 void AWave::EnterTransition()
 {
-	if ((WaveNumber + 1) > m_MaxNumberOfWaves)
-	{
-		Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->WinGame();
-	}
-	else
-	{
 		if (!bFromLoadedSave)
 		{
 			GetWorld()->GetTimerManager().SetTimer(
@@ -98,8 +88,6 @@ void AWave::EnterTransition()
 			TransitionPeriod,
 			false
 		);
-	}
-
 }
 
 void AWave::BuildEnemyPool()
@@ -144,6 +132,13 @@ void AWave::OnEnemyDefeated()
 	}
 	else
 	{
+
+		if ((WaveNumber + 1) > m_MaxNumberOfWaves)
+		{
+			Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->WinGame();
+			return;
+		}
+
 		//Go to the next round
 		if (EnemyRemaining <= 0)
 		{

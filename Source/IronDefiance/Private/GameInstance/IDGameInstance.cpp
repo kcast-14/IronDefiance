@@ -3,8 +3,10 @@
 
 #include "GameInstance/IDGameInstance.h"
 #include "Actors/Wave.h"
-#include "Character/CharacterBase.h"
 #include "Actors/FOBActor.h"
+#include "Character/CharacterBase.h"
+#include "DataTables/SettingsDataTable.h"
+#include "Engine/Engine.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "SaveGame/IDSaveGame.h"
@@ -19,6 +21,14 @@ UIDGameInstance::UIDGameInstance()
 void UIDGameInstance::MakeEmptyGameSave(int SlotToUse)
 {
 	UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
+
+	FString Date;
+	FString Time;
+	ParseDate(FDateTime::Now().GetDate().ToString(), Date);
+	ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
+
+	SaveGameInstance->m_SaveInfo.Time = Time;
+	SaveGameInstance->m_SaveInfo.Date = Date;
 
 	m_CurrentSaveGame = SaveGameInstance;
 
@@ -53,11 +63,16 @@ void UIDGameInstance::PostInitProperties()
 {
 	Super::PostInitProperties();
 
-
 }
 
 void UIDGameInstance::BeginPlay()
 {
+	m_UserSettings = NewObject<USettingsDataTable>(this, USettingsDataTable::StaticClass());
+
+	UGameplayStatics::SetBaseSoundMix(GetWorld(), m_SoundMix);
+
+
+
 	m_SaveArray.Reserve(m_MaxNumberOfSaveFiles);
 	for (int i = 0; i < m_MaxNumberOfSaveFiles; ++i)
 	{
