@@ -39,6 +39,7 @@ void UAnimInstanceBase::NativeBeginPlay()
 	ensureMsgf(m_PC, TEXT("Player Controller was invalid"));
 
 	m_PC->m_OnModeSwitch.AddDynamic(this, &UAnimInstanceBase::OnModeChanged);
+	m_PC->m_OnRotate.AddDynamic(this, &UAnimInstanceBase::OnTankRotated);
 }
 
 void UAnimInstanceBase::UpdateAnimationProperties()
@@ -65,7 +66,12 @@ void UAnimInstanceBase::UpdateAnimationProperties()
 
 		//Set Roll, Pitch, and Yaw
 		FRotator AimRotation = m_Pawn->GetBaseAimRotation();
-		FRotator ActorRotation;
+		FRotator ActorRotation = {0.f, 0.f, 0.f,};
+		FRotator ActorOriginRotation = { 0.f, 0.f, 0.f, };
+		if (m_Tank != nullptr)
+		{
+			ActorOriginRotation = m_Tank->GetTankRotation();
+		}
 		if (m_CurrentMode == ECameraMode::CM_SniperMode)
 		{
 			ActorRotation = m_Tank->GetActorRotation();
@@ -127,4 +133,9 @@ void UAnimInstanceBase::OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharac
 	(m_Tank != Tank) ? m_Tank = Tank : m_Tank;
 	m_CurrentMode = Mode;
 	m_Pawn = NewOwner;
+}
+
+void UAnimInstanceBase::OnTankRotated(float RotateVal)
+{
+	m_CurrentTankRotation.Pitch = RotateVal;
 }

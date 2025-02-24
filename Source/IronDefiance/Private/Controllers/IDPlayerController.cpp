@@ -792,6 +792,7 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_JumpAction, ETriggerEvent::Completed, this, &AIDPlayerController::StopJumping);
 		EnhancedInputComponent->BindAction(m_MoveAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Move);
 		EnhancedInputComponent->BindAction(m_LookAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Look);
+		EnhancedInputComponent->BindAction(m_TurnAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Turn);
 		EnhancedInputComponent->BindAction(m_PauseAction, ETriggerEvent::Triggered, this, &AIDPlayerController::PauseGame);
 		EnhancedInputComponent->BindAction(m_CommandMenuAction, ETriggerEvent::Triggered, this, &AIDPlayerController::OpenCommandMenu);
 		EnhancedInputComponent->BindAction(m_SwitchTank, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchTanks);
@@ -892,6 +893,10 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	}
 	case ECameraMode::CM_ActionMode:
 	{
+		if (IsInputKeyDown(EKeys::A) || IsInputKeyDown(EKeys::D))
+		{
+			break;
+		}
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorForwardVector(), (MoveVector.Y * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorRightVector(), (MoveVector.X * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		break;
@@ -899,11 +904,6 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	case ECameraMode::CM_SniperMode:
 		//We probably need to do something with a camera here but maybe not
 	{
-		FVector Location = m_Operator->GetTankToPilot()->GetCameraComponent()->GetComponentTransform().GetLocation();
-
-		Location.X += (MoveVector.X * m_Operator->GetTankToPilot()->GetCameraSpeed());
-		Location.Y += (MoveVector.Y * m_Operator->GetTankToPilot()->GetCameraSpeed());
-		break;
 	}
 	default:
 	{
@@ -953,6 +953,13 @@ void AIDPlayerController::Look(const FInputActionValue& Value)
 	}
 	return;
 
+}
+
+void AIDPlayerController::Turn(const FInputActionValue& Value)
+{
+	float TurnValue = Value.Get<float>();
+
+	m_OnRotate.Broadcast(TurnValue * 10.f);
 }
 
 void AIDPlayerController::PauseGame(const FInputActionValue& Value)

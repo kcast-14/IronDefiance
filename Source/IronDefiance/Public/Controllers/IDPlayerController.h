@@ -12,6 +12,7 @@
  */
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnModeSwitch, ECameraMode, Mode, APawn*, Owner, ACharacterBase*, Tank);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRotate, float, RotateVal);
 
 class AEnemy;
 class ACharacterBase;
@@ -139,6 +140,8 @@ public:
 	int m_PoolSize = 0;
 
 	FOnModeSwitch m_OnModeSwitch;
+
+	FOnRotate m_OnRotate;
 
 protected:
 
@@ -287,6 +290,9 @@ public:
 	void OpenCommandMenu(const FInputActionValue& Value);
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
+	UFUNCTION()
+	void Turn(const FInputActionValue& Value);
+
 	void PauseGame(const FInputActionValue& Value);
 	UFUNCTION()
 	void SwitchToSniper(const FInputActionValue& Value);

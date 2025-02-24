@@ -54,6 +54,7 @@ void UIDGameInstance::Init()
 void UIDGameInstance::PostInitProperties()
 {
 	Super::PostInitProperties();
+
 }
 
 void UIDGameInstance::BeginPlay()

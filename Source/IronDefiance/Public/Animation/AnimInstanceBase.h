@@ -32,6 +32,9 @@ public:
 	UFUNCTION()
 	void OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharacterBase* Tank);
 
+	UFUNCTION()
+	void OnTankRotated(float RotateVal);
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName="MovementSpeed"))
 	float m_MovementSpeed = 0.f;
@@ -45,6 +48,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Rotation On Last Tick"))
 	FRotator m_RotationLastTick = { 0.f,0.f,0.f };
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Rotation On Last Tick"))
+	FRotator m_CurrentTankRotation = { 0.f,0.f,0.f };
+	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pawn Pointer"))
 	APawn* m_Pawn = nullptr;
 
@@ -56,6 +63,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pitch (Y-Axis)"))
 	float m_Pitch = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Pitch (Y-Axis)"))
+	float m_TankPitch = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Roll (X-Axis)"))
 	float m_Roll = 0.f;

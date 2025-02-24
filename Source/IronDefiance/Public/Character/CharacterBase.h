@@ -80,6 +80,8 @@ public:
 
 	FORCEINLINE virtual float GetCameraSpeed() { return m_CameraSpeed; }
 
+	FORCEINLINE FRotator GetTankRotation() { return m_TankRotation; }
+
 	FORCEINLINE virtual float GetCurrentHealth() { return m_CurrentHealth; }
 	FORCEINLINE virtual float GetCurrentAPRounds() { return m_CurrentAPRounds;}
 	FORCEINLINE virtual float GetCurrentApcrRounds() { return m_CurrentApcrRounds; }
@@ -144,6 +146,8 @@ private:
 	float m_CurrentHeatRounds = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Current Explosive Rounds"))
 	float m_CurrentExplosiveRounds = 0.f;
+
+	FRotator m_TankRotation = { 0.f, 0.f, 0.f };
 
 	bool bOverlappingCombatSphere = false;
 

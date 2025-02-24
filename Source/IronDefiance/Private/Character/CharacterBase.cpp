@@ -85,6 +85,8 @@ void ACharacterBase::BeginPlay()
 		T.Key->m_OnDangerZoneExited.AddDynamic(this, &ACharacterBase::OnEnemyExitedDangerZone);
 	}
 	m_CurrentHealth = m_Stats.MaxHealth;
+
+	m_TankRotation = GetActorRotation();
 }
 
 // Called every frame
