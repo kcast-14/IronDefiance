@@ -10,7 +10,8 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"AIModule"
+				"AIModule",
+				"CoreUObject"
 			]
 		}
 	],
@@ -64,7 +65,7 @@
 		{
 			"Name": "ChaosVehiclesPlugin",
 			"Enabled": true
-		},
+		}
 	],
 	"TargetPlatforms": [
 		"Mac",

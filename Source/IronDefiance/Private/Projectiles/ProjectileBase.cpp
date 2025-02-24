@@ -8,6 +8,7 @@
 
 #include "Projectiles/ProjectileBase.h"
 #include "Components/SphereComponent.h"
+#include "particles/ParticleSystemComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Character/CharacterBase.h"
 #include "Enemy/Enemy.h"
@@ -39,6 +40,8 @@ AProjectileBase::AProjectileBase()
 	ProjectileMovementComponent->bShouldBounce = false;
 	ProjectileMovementComponent->Bounciness = .05f;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+
+	m_ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 
 	InitialLifeSpan = 3.f;
 
@@ -78,7 +81,7 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 		{
 			UGameplayStatics::ApplyDamage(Char, m_Damage, m_FireInstigator, this, m_DamageTypeClass);
 			check(HitParticles);
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, Hit.ImpactPoint, FRotator(0.f), true);
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, Hit.ImpactPoint, FRotator(0.f), true, EPSCPoolMethod::AutoRelease);
 			Destroy();
 			return;
 		}

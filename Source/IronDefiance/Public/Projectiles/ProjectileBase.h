@@ -9,6 +9,7 @@
 
 class USphereComponent;
 class UParticleSystem;
+class UParticleSystemComponent;
 class UProjectileMovementComponent;
 class UStaticMeshComponent;
 class AAIController;
@@ -37,6 +38,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 	UStaticMeshComponent* StaticMeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particles")
+	UParticleSystemComponent* m_ParticleSystemComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particles")
 	UParticleSystem* HitParticles;
@@ -80,4 +84,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Ammo Type"))
 	EAmmoType m_AmmoType = EAmmoType::DEFAULT_MAX;
+
+	EProjPoolMethod m_PoolMethod = EProjPoolMethod::AutoRelease;
+
+	friend class UProjectilePool;
 };

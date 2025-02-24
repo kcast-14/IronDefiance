@@ -14,6 +14,7 @@
 class AWave;
 class UIDSaveGame;
 class USettingsDataTable;
+class UProjectilePool;
 
 UCLASS()
 class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
@@ -78,6 +79,9 @@ private:
 	USoundMix* m_SoundMix;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AV", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "User Settings"))
 	USettingsDataTable* m_UserSettings;
+
+	UPROPERTY()
+	UProjectilePool* m_ProjPool;
 
 	UPROPERTY(VisibleAnywhere, Category = "Save", meta = (DisplayName = "Save Array"))
 	TArray<UIDSaveGame*> m_SaveArray;

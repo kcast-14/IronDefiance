@@ -22,6 +22,14 @@ void UIDGameInstance::MakeEmptyGameSave(int SlotToUse)
 {
 	UIDSaveGame* SaveGameInstance = Cast<UIDSaveGame>(UGameplayStatics::CreateSaveGameObject(UIDSaveGame::StaticClass()));
 
+	FString Date;
+	FString Time;
+	ParseDate(FDateTime::Now().GetDate().ToString(), Date);
+	ParseTime(FDateTime::Now().GetTimeOfDay().ToString(), Time);
+
+	SaveGameInstance->m_SaveInfo.Time = Time;
+	SaveGameInstance->m_SaveInfo.Date = Date;
+
 	m_CurrentSaveGame = SaveGameInstance;
 
 	if (SlotToUse != 0)
