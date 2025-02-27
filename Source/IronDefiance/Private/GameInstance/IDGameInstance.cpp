@@ -6,6 +6,8 @@
 #include "Actors/FOBActor.h"
 #include "Character/CharacterBase.h"
 #include "DataTables/SettingsDataTable.h"
+#include "ProjectilePool.h"
+#include "Projectiles/ProjectileBase.h"
 #include "Engine/Engine.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
@@ -68,6 +70,8 @@ void UIDGameInstance::PostInitProperties()
 void UIDGameInstance::BeginPlay()
 {
 	m_UserSettings = NewObject<USettingsDataTable>(this, USettingsDataTable::StaticClass());
+	m_ProjPool = NewObject<UProjectilePool>(this, UProjectilePool::StaticClass());
+	m_ProjPool->Init(m_ProjectileClass);
 
 	UGameplayStatics::SetBaseSoundMix(GetWorld(), m_SoundMix);
 
@@ -337,6 +341,7 @@ void UIDGameInstance::SwitchLevel(FName MapName)
 		FName CurrentLevelName(*CurrentLevel);
 		if (CurrentLevelName != MapName)
 		{
+			m_OnLevelSwitch.Broadcast();
 			UGameplayStatics::OpenLevel(World, MapName);
 		}
 	}

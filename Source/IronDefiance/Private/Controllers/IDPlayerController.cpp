@@ -180,6 +180,30 @@ void AIDPlayerController::RemoveLoseScreen_Implementation()
 	}
 }
 
+void AIDPlayerController::DisplayLoadingScreen_Implementation()
+{
+	if (m_LoadingScreen)
+	{
+		bLoadingScreenVisible = true;
+		m_LoadingScreen->SetVisibility(ESlateVisibility::Visible);
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
+		bShowMouseCursor = false;
+	}
+}
+
+void AIDPlayerController::RemoveLoadingScreen_Implementation()
+{
+	if (m_LoadingScreen)
+	{
+		bLoadingScreenVisible = false;
+		m_LoadingScreen->SetVisibility(ESlateVisibility::Hidden);
+		FInputModeGameAndUI InputModeGameUI;
+		SetInputMode(InputModeGameUI);
+		bShowMouseCursor = true;
+	}
+}
+
 
 void AIDPlayerController::DisplayMainMenu_Implementation()
 {
@@ -427,6 +451,18 @@ void AIDPlayerController::ToggleLoseScreen()
 	else
 	{
 		DisplayLoseScreen();
+	}
+}
+
+void AIDPlayerController::ToggleLoadingScreen()
+{
+	if (bLoadingScreenVisible)
+	{
+		RemoveLoadingScreen();
+	}
+	else
+	{
+		DisplayLoadingScreen();
 	}
 }
 
@@ -710,6 +746,13 @@ void AIDPlayerController::BeginPlay()
 	m_LoseScreen->AddToViewport();
 	m_LoseScreen->SetVisibility(ESlateVisibility::Hidden);
 
+	check(m_WLoadingScreen);
+	m_LoadingScreen = CreateWidget<UUserWidget>(this, m_WLoadingScreen);
+
+	check(m_LoadingScreen);
+	m_LoadingScreen->AddToViewport();
+	m_LoadingScreen->SetVisibility(ESlateVisibility::Hidden);
+
 	check(m_WSettingsMenu);
 	m_SettingsMenu = CreateWidget<UUserWidget>(this, m_WSettingsMenu);
 
@@ -723,17 +766,6 @@ void AIDPlayerController::BeginPlay()
 	check(m_ControlMenu);
 	m_ControlMenu->AddToViewport();
 	m_ControlMenu->SetVisibility(ESlateVisibility::Hidden);
-
-	/**
-	* We'll uncomment everything below once we have more direction on what will actually be needed and not needed
-	*/
-
-	//check(WMainMenu);
-	//FString MapName = GetWorld()->GetMapName();
-	//MainMenu = CreateWidget<UUserWidget>(this, WMainMenu);
-	//check(MainMenu)
-	//MainMenu->AddToViewport();
-	//MainMenu->SetVisibility(ESlateVisibility::Hidden);
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 
@@ -1193,7 +1225,7 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 				}
 				else
 				{
-					PlaceTank(Result.Location, WorldDirection);
+					PlaceTank(Result.ImpactPoint, WorldDirection);
 				}
 			}
 			else

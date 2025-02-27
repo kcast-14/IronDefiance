@@ -97,6 +97,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Lose Screen Widget Instance"))
 	UUserWidget* m_LoseScreen;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Loading Screen Widget Class"))
+	TSubclassOf<UUserWidget> m_WLoadingScreen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Loading Screen Widget Instance"))
+	UUserWidget* m_LoadingScreen;
+
 
 	bool bHUDOverlayVisible = false;
 
@@ -129,6 +134,9 @@ public:
 	bool bLoseScreenVisible = false;
 
 	bool bWinScreenVisible = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bLoadingScreenVisible = false;
 
 	UPROPERTY()
 	FVector TankLocation;
@@ -183,6 +191,11 @@ public:
 	void RemoveLoseScreen();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayLoadingScreen();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveLoadingScreen();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void DisplayMainMenu();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemoveMainMenu();
@@ -225,6 +238,9 @@ public:
 	void ToggleWinScreen();
 	UFUNCTION()
 	void ToggleLoseScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void ToggleLoadingScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void TogglePauseMenu();

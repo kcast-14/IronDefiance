@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-
+#include "IDEnums.h"
 #include "ProjectilePool.generated.h"
 
 
@@ -23,15 +23,30 @@ public:
 
 	UProjectilePool(const FObjectInitializer& Initializer);
 
-	void Activate();
+	UFUNCTION()
+	void Init(TSubclassOf<AProjectileBase>& ProjectileClass);
 
+	UFUNCTION()
+	void DeInit();
+	UFUNCTION()
+	void Activate(AProjectileBase* Proj);
+	UFUNCTION()
 	void Deactivate(AProjectileBase* Proj);
+	UFUNCTION()
+	AProjectileBase* RequestProjectile(EProjPoolMethod ReleaseMethod = EProjPoolMethod::AutoRelease);
+	virtual void BeginDestroy() override;
 
 private:
-	AProjectileBase* GetProjectile();
+
+	UFUNCTION()
+	AProjectileBase* GetProjectile(EProjPoolMethod ReleaseMethod);
+	UFUNCTION()
+	AProjectileBase* FindAvailableProjectile();
 
 private:
 
+	// Represents a projectile and whether or not that projectile is activated and in use
+	UPROPERTY(VisibleAnywhere)
 	TMap<AProjectileBase*, bool> m_Pool;
 	
 };

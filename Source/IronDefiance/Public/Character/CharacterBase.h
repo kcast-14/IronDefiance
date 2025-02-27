@@ -12,7 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTankDestroyed, ACharacterBase*, Tank);
 
 
-class AAIController;
+class AIDAIController;
 class AFOBActor;
 class AEnemy;
 class AAIController;
@@ -153,7 +153,7 @@ private:
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
-	AAIController* m_AIController = nullptr;
+	AIDAIController* m_AIController = nullptr;
 	
 	TArray<AEnemy*> m_TargetsInRange;
 

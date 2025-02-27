@@ -23,8 +23,7 @@ AProjectileBase::AProjectileBase()
 	PrimaryActorTick.bCanEverTick = true;
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollisionComponent->InitSphereRadius(15.f);
-	RootComponent = CollisionComponent;
-	CollisionComponent->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
+	SetRootComponent(CollisionComponent);
 	CollisionComponent->SetNotifyRigidBodyCollision(true);
 
 
@@ -34,8 +33,9 @@ AProjectileBase::AProjectileBase()
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
-	ProjectileMovementComponent->InitialSpeed = 3000.f;
+	ProjectileMovementComponent->InitialSpeed = 0.f;
 	ProjectileMovementComponent->MaxSpeed = 3000.f;
+	ProjectileMovementComponent->Velocity = FVector(0.f);
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->bShouldBounce = false;
 	ProjectileMovementComponent->Bounciness = .05f;
@@ -43,9 +43,10 @@ AProjectileBase::AProjectileBase()
 
 	m_ParticleSystemComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystemComponent"));
 
-	InitialLifeSpan = 3.f;
+	InitialLifeSpan = 0.f; //Before it was 3.f so they were dying after 3 seconds
 
 	m_Damage = 1.f;
+	SetActorHiddenInGame(true);
 
 }
 
@@ -61,13 +62,13 @@ void AProjectileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	StaticMeshComponent->SetWorldLocation(CollisionComponent->GetComponentLocation());
+	//StaticMeshComponent->SetWorldLocation(CollisionComponent->GetComponentLocation());
 
 }
 
 void AProjectileBase::FireInDirection(const FVector& ShootDirection)
 {
-	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
+	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->MaxSpeed;
 }
 
 void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
@@ -81,8 +82,11 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 		{
 			UGameplayStatics::ApplyDamage(Char, m_Damage, m_FireInstigator, this, m_DamageTypeClass);
 			check(HitParticles);
+			m_ParticleSystemComponent->SetTemplate(HitParticles);
+			m_ParticleSystemComponent->Activate();
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, Hit.ImpactPoint, FRotator(0.f), true, EPSCPoolMethod::AutoRelease);
-			Destroy();
+			//m_OnDeactivateProjectile.Broadcast(this);
+			Execute();
 			return;
 		}
 
@@ -90,18 +94,37 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 		{
 			UGameplayStatics::ApplyDamage(Enemy, m_Damage, m_FireInstigator, this, m_DamageTypeClass);
 			check(HitParticles);
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, Hit.ImpactPoint, FRotator(0.f), true);
-			Destroy();
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticles, Hit.ImpactPoint, FRotator(0.f), true, EPSCPoolMethod::AutoRelease);
+			//m_OnDeactivateProjectile.Broadcast(this);
+			Execute();
 			return;
 		}
 
 		if(!Char && !Enemy)
 		{
 			check(HitWorldParticles);
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitWorldParticles, Hit.ImpactPoint, FRotator(0.f), true);
-			Destroy();
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitWorldParticles, Hit.ImpactPoint, FRotator(0.f), true, EPSCPoolMethod::AutoRelease);
+			//m_OnDeactivateProjectile.Broadcast(this);
+			Execute();
 			return;
 		}
 	}
+
+
+}
+
+void AProjectileBase::Execute()
+{
+	BindedFunction(this);
+}
+
+void AProjectileBase::BindFunction(DeactivationFn Func)
+{
+	BindedFunction = Func;
+}
+
+void AProjectileBase::UnbindFunction()
+{
+	BindedFunction = nullptr;
 }
 
