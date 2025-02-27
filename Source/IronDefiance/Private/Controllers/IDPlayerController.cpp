@@ -3,6 +3,7 @@
 
 #include "Controllers/IDPlayerController.h"
 #include "Actors/Wave.h"
+#include "Animation/AnimInstanceBase.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Character/CharacterBase.h"
@@ -612,24 +613,30 @@ void AIDPlayerController::UpgradeTank(ACharacterBase* TankToUpgrade, float Value
 
 void AIDPlayerController::SwitchTanks(const FInputActionValue& Value)
 {
-	if (m_Tanks.IsEmpty())
+	if (m_Tanks.IsEmpty() || ( m_CurrentControlledTank == 0 && (m_Tanks.Num() - 1 == 0)))
+	{
+		return;
+	}
+
+	if (!m_Operator->IsPilotingTank())
 	{
 		return;
 	}
 
 	//Basically we'll cycle through the array going to the right until we reach the end, once we reach the end
 	//We'll reset back to the first tank and the player will have to keep cycling.
-	if (m_CurrentControlledTank <= m_Tanks.Num() -1 )
+	if (m_CurrentControlledTank < 0 || m_CurrentControlledTank == m_Tanks.Num() - 1 )
 	{
-		m_CurrentControlledTank++;
+		m_CurrentControlledTank = 0;
 		m_Operator->SetTankToPilot(m_Tanks[m_CurrentControlledTank]);
 		Possess(m_Operator->GetTankToPilot());
 		return;
 	}
 
-	m_CurrentControlledTank = 0;
+	m_CurrentControlledTank++;
 	m_Operator->SetTankToPilot(m_Tanks[m_CurrentControlledTank]);
 	Possess(m_Operator->GetTankToPilot());
+
 }
 
 void AIDPlayerController::MakeHealthBarWidgets()
@@ -1015,7 +1022,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot()->GetFPSPawn());
 			ToggleSniperHUD();
 		}
 		else
@@ -1025,7 +1033,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot()->GetFPSPawn());
 			ToggleSniperHUD();
 		}
 		break;
@@ -1037,7 +1046,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			ToggleActionHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot()->GetFPSPawn());
 			ToggleSniperHUD();
 		}
 		else
@@ -1047,7 +1057,8 @@ void AIDPlayerController::SwitchToSniper(const FInputActionValue& Value)
 			ToggleActionHUD();
 			Possess(m_Operator->GetTankToPilot()->GetFPSPawn());
 			m_Operator->SetCameraMode(ECameraMode::CM_SniperMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot()->GetFPSPawn(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot()->GetFPSPawn());
 			ToggleSniperHUD();
 		}
 		break;
@@ -1082,7 +1093,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
-		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator, m_Operator->GetTankToPilot());
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 		m_CurrentControlledTank = -1;
 		break;
 	}
@@ -1094,7 +1105,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
-		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator, m_Operator->GetTankToPilot());
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 		m_CurrentControlledTank = -1;
 		break;
 	}
@@ -1122,7 +1133,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		else
@@ -1132,7 +1144,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		break;
@@ -1149,7 +1162,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			ToggleSniperHUD();
 			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		else
@@ -1159,7 +1173,8 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			ToggleSniperHUD();
 			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
+			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
+			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
 			ToggleActionHUD();
 		}
 		break;
@@ -1202,7 +1217,7 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 
 	if (m_Operator->IsPilotingTank())
 	{
-		//Here is where we'd do the shooting and stuff like that
+		m_Operator->GetTankToPilot()->Attack();
 		return;
 	}
 
@@ -1267,7 +1282,7 @@ void AIDPlayerController::EnterActionMode()
 		ToggleOperatorHUD();
 		ToggleActionHUD();
 		m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
-		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode(), m_Operator->GetTankToPilot(), m_Operator->GetTankToPilot());
+		m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 		break;
 	}
 	//We in theory shouldn't ever hit these two cases, so if we do then you need to follow the stack trace back to figure out how this was even possible.

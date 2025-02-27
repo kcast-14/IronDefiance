@@ -11,7 +11,7 @@
  * TODO: Organize this class a bit better
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnModeSwitch, ECameraMode, Mode, APawn*, Owner, ACharacterBase*, Tank);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeSwitch, ECameraMode, Mode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRotate, float, RotateVal);
 
 class AEnemy;
@@ -363,7 +363,7 @@ private:
 		TArray<ACharacterBase*> m_Tanks;
 
 		UPROPERTY()
-		int m_CurrentControlledTank = 0;
+		int m_CurrentControlledTank = -1;
 
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Sound"))
 		USoundCue* m_Pause;

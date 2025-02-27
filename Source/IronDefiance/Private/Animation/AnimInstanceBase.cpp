@@ -12,11 +12,6 @@
 
 void UAnimInstanceBase::NativeInitializeAnimation()
 {
-
-	if (m_Pawn == nullptr)
-	{
-		m_Pawn = TryGetPawnOwner();
-	}
 }
 
 void UAnimInstanceBase::NativeBeginPlay()
@@ -44,6 +39,8 @@ void UAnimInstanceBase::NativeBeginPlay()
 
 void UAnimInstanceBase::UpdateAnimationProperties()
 {
+
+	
 	if (m_Pawn == nullptr)
 	{
 		m_Pawn = TryGetPawnOwner();
@@ -128,11 +125,9 @@ void UAnimInstanceBase::UpdateAnimationProperties()
 	}
 }
 
-void UAnimInstanceBase::OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharacterBase* Tank)
+void UAnimInstanceBase::OnModeChanged(ECameraMode Mode)
 {
-	(m_Tank != Tank) ? m_Tank = Tank : m_Tank;
 	m_CurrentMode = Mode;
-	m_Pawn = NewOwner;
 }
 
 void UAnimInstanceBase::OnTankRotated(float RotateVal)

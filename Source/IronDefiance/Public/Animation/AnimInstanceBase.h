@@ -30,10 +30,12 @@ public:
 	void UpdateAnimationProperties();
 
 	UFUNCTION()
-	void OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharacterBase* Tank);
+	void OnModeChanged(ECameraMode Mode);
 
 	UFUNCTION()
 	void OnTankRotated(float RotateVal);
+
+	FORCEINLINE void SetPawn(APawn* NewPawn) { m_Pawn = NewPawn; }
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName="MovementSpeed"))

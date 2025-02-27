@@ -79,6 +79,7 @@ ACharacterBase::ACharacterBase()
 // Called when the game starts or when spawned
 void ACharacterBase::BeginPlay()
 {
+	GetMesh()->GetAnimInstance();
 	Super::BeginPlay();	
 	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
