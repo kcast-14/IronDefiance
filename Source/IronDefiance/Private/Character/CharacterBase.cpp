@@ -35,7 +35,7 @@ ACharacterBase::ACharacterBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.0f);
-	
+
 	m_SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	m_SpringArmComponent->SetupAttachment(GetRootComponent());
 	m_SpringArmComponent->SetRelativeLocation({ 0.f,0.f,20.f }); // {} are the equivalent of FVector()
@@ -52,12 +52,11 @@ ACharacterBase::ACharacterBase()
 	m_CameraComponent->FieldOfView = 90.f;
 	m_CameraComponent->bUsePawnControlRotation = true;
 
-
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	GetMesh()->SetupAttachment(GetCapsuleComponent());
+	GetMesh()->SetupAttachment(GetRootComponent());
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	
 
 	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
 	m_CombatSphere->SetupAttachment(GetRootComponent());
@@ -96,8 +95,6 @@ void ACharacterBase::BeginPlay()
 
 	m_AIController = Cast<AIDAIController>(GetController());
 	m_AIController->SetOwningActor<ACharacterBase>(this);
-
-	Fire();
 }
 
 // Called every frame
@@ -105,7 +102,7 @@ void ACharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (m_CombatTarget)
+	if (m_CombatTarget && !IsPiloted())
 	{
 		Attack();
 	}

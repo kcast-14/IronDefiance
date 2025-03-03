@@ -39,6 +39,8 @@ public:
 
 	FORCEINLINE virtual ACharacterBase* GetTankToPilot() { return m_TankToPilot; }
 
+	FORCEINLINE float GetTurnRate() { return m_TurnRate; }
+
 	FORCEINLINE virtual void SetTankToPilot(AActor* Tank);
 
 	FORCEINLINE virtual bool IsPilotingTank() { return bIsPilotingTank; }
@@ -79,6 +81,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Mode"))
 	ECameraMode m_CameraMode = ECameraMode::DEFAULT_MAX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Info", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Turn Rate"))
+	float m_TurnRate = 10.f;
+
+
 
 
 };

@@ -998,7 +998,7 @@ void AIDPlayerController::Turn(const FInputActionValue& Value)
 {
 	float TurnValue = Value.Get<float>();
 
-	m_OnRotate.Broadcast(TurnValue * 10.f);
+	m_OnRotate.Broadcast(TurnValue * m_Operator->GetTurnRate());
 }
 
 void AIDPlayerController::PauseGame(const FInputActionValue& Value)
@@ -1090,6 +1090,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		ToggleActionHUD();
 		ToggleOperatorHUD();
 		Possess(m_Operator);
+		m_Operator->GetTankToPilot()->SetBeingPiloted(false);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
@@ -1102,6 +1103,7 @@ void AIDPlayerController::SwitchToOperator(const FInputActionValue& Value)
 		ToggleSniperHUD();
 		ToggleOperatorHUD();
 		Possess(m_Operator);
+		m_Operator->GetTankToPilot()->SetBeingPiloted(false);
 		m_Operator->CanPilotTank(false);
 		m_Operator->SetTankToPilot(nullptr);
 		m_Operator->SetCameraMode(ECameraMode::CM_TacticianMode);
@@ -1132,6 +1134,7 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 		{
 			ToggleOperatorHUD();
 			Possess(m_Operator->GetTankToPilot());
+			m_Operator->GetTankToPilot()->SetBeingPiloted(true);
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
 			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
@@ -1142,6 +1145,7 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			//If we're not currently operating a tank then we'll randomly select a tank from the array of tanks currently placed and possess one of those
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleOperatorHUD();
+			m_Operator->GetTankToPilot()->SetBeingPiloted(true);
 			Possess(m_Operator->GetTankToPilot());
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
 			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
@@ -1161,6 +1165,7 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 		{
 			ToggleSniperHUD();
 			Possess(m_Operator->GetTankToPilot());
+			m_Operator->GetTankToPilot()->SetBeingPiloted(true);
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
 			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
@@ -1172,6 +1177,7 @@ void AIDPlayerController::SwitchToAction(const FInputActionValue& Value)
 			m_Operator->SetTankToPilot(m_Tanks[FMath::RandRange(0, (m_Tanks.Num()))]);
 			ToggleSniperHUD();
 			Possess(m_Operator->GetTankToPilot());
+			m_Operator->GetTankToPilot()->SetBeingPiloted(true);
 			m_Operator->SetCameraMode(ECameraMode::CM_ActionMode);
 			m_OnModeSwitch.Broadcast(m_Operator->GetCameraMode());
 			Cast<UAnimInstanceBase>(m_Operator->GetTankToPilot()->GetMesh()->GetAnimInstance())->SetPawn(m_Operator->GetTankToPilot());
