@@ -4,6 +4,7 @@
 #include "Animation/AnimInstanceBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Controllers/IDPlayerController.h"
 #include "Pawns/OperatorPawn.h"
 #include "Character/CharacterBase.h"
@@ -132,5 +133,9 @@ void UAnimInstanceBase::OnModeChanged(ECameraMode Mode)
 
 void UAnimInstanceBase::OnTankRotated(float RotateVal)
 {
-	m_CurrentTankRotation.Pitch = RotateVal;
+	m_TankBodyPitch += RotateVal;
+	if (m_TankBodyPitch == 180.f || m_TankBodyPitch == -180.f)
+	{
+		m_TankBodyPitch *= -1.f;
+	}
 }

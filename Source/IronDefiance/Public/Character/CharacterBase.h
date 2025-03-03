@@ -89,13 +89,13 @@ public:
 	FORCEINLINE virtual float GetCurrentHeatRounds() { return m_CurrentHeatRounds; }
 	FORCEINLINE virtual FTankStats GetStats() { return m_Stats; }
 
-
 	FORCEINLINE virtual void SetCurrentHealth(float Value) { m_CurrentHealth = Value; }
 	FORCEINLINE virtual void SetCurrentAPRounds(float Value) { m_CurrentAPRounds = Value; }
 	FORCEINLINE virtual void SetCurrentApcrRounds(float Value) { m_CurrentApcrRounds = Value; }
 	FORCEINLINE virtual void SetCurrentExplosiveRounds(float Value) { m_CurrentExplosiveRounds = Value; }
 	FORCEINLINE virtual void SetCurrentHeatRounds(float Value) { m_CurrentHeatRounds = Value; }
 	FORCEINLINE virtual void SetStats(FTankStats Stats) { m_Stats = Stats; }
+	FORCEINLINE virtual void SetBeingPiloted(bool Value) { bIsBeingPiloted = Value; }
 
 
 public:
@@ -130,6 +130,8 @@ private:
 	void InterpToTarget();
 
 	void DestroyTank();
+
+	bool IsPiloted() { return bIsBeingPiloted; }
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
@@ -186,6 +188,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Speed"))
 	float m_CameraSpeed = 10.f;
+
+	UPROPERTY()
+	bool bIsBeingPiloted = false;
 
 	UPROPERTY()
 	AFPSPawn* m_FPSPawn;
