@@ -88,6 +88,7 @@ public:
 	FORCEINLINE virtual float GetCurrentExplosiveRounds() { return m_CurrentExplosiveRounds; }
 	FORCEINLINE virtual float GetCurrentHeatRounds() { return m_CurrentHeatRounds; }
 	FORCEINLINE virtual FTankStats GetStats() { return m_Stats; }
+	FORCEINLINE virtual ETankType GetType() { return m_TankType; }
 
 	FORCEINLINE virtual void SetCurrentHealth(float Value) { m_CurrentHealth = Value; }
 	FORCEINLINE virtual void SetCurrentAPRounds(float Value) { m_CurrentAPRounds = Value; }

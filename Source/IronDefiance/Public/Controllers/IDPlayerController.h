@@ -12,7 +12,7 @@
  */
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeSwitch, ECameraMode, Mode);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRotate, float, RotateVal);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnRotate, float, RotateVal, APawn*, Pawn);
 
 class AEnemy;
 class ACharacterBase;

@@ -932,14 +932,33 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 	}
 	case ECameraMode::CM_ActionMode:
 	{
+		//This is necessary because we lack naming conventions and I'm not going through and enforcing name conventions and then reimporting all of the skeletons along with remaking the animations
+		FName Bone;
+		switch (m_Operator->GetTankToPilot()->GetType())
+		{
+		case ETankType::TT_M4Sherman:
+		{
+			Bone = "body_jnt";
+			break;
+		}
+		case ETankType::TT_Tiger1:
+		{
+			Bone = "Body_jnt";
+			break;
+		}
+		case ETankType::TT_M10Wolverine:
+		{
+			Bone = "base_jnt";
+			break;
+		}
+		}
 		if (IsInputKeyDown(EKeys::A) || IsInputKeyDown(EKeys::D))
 		{
 			break;
 		}
-		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorForwardVector(), (MoveVector.Y * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
-		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetActorRightVector(), (MoveVector.X * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
+		m_Operator->GetTankToPilot()->AddMovementInput(m_Operator->GetTankToPilot()->GetMesh()->GetBoneTransform(Bone, ERelativeTransformSpace::RTS_Component).GetRotation().GetForwardVector(), (MoveVector.Y * m_Operator->GetTankToPilot()->GetCharacterMovement()->MaxWalkSpeed));
 		break;
-	}
+		}
 	case ECameraMode::CM_SniperMode:
 		//We probably need to do something with a camera here but maybe not
 	{
@@ -998,7 +1017,7 @@ void AIDPlayerController::Turn(const FInputActionValue& Value)
 {
 	float TurnValue = Value.Get<float>();
 
-	m_OnRotate.Broadcast(TurnValue * m_Operator->GetTurnRate());
+	m_OnRotate.Broadcast(TurnValue * m_Operator->GetTurnRate(), m_Operator->GetTankToPilot());
 }
 
 void AIDPlayerController::PauseGame(const FInputActionValue& Value)

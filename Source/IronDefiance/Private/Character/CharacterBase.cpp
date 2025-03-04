@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Controllers/IDPlayerController.h"
 #include "Controllers/IDAIController.h"
 #include "Enemy/Enemy.h"
@@ -56,6 +57,8 @@ ACharacterBase::ACharacterBase()
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	GetArrowComponent()->SetupAttachment(GetMesh());
+	
 	
 
 	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
