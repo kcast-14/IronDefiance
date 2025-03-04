@@ -57,8 +57,6 @@ ACharacterBase::ACharacterBase()
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-	GetArrowComponent()->SetupAttachment(GetMesh());
-	
 	
 
 	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
