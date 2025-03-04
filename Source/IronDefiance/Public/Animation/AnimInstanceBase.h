@@ -33,7 +33,7 @@ public:
 	void OnModeChanged(ECameraMode Mode);
 
 	UFUNCTION()
-	void OnTankRotated(float RotateVal);
+	void OnTankRotated(float RotateVal, APawn* Pawn);
 
 	FORCEINLINE void SetPawn(APawn* NewPawn) { m_Pawn = NewPawn; }
 

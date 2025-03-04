@@ -131,8 +131,12 @@ void UAnimInstanceBase::OnModeChanged(ECameraMode Mode)
 	m_CurrentMode = Mode;
 }
 
-void UAnimInstanceBase::OnTankRotated(float RotateVal)
+void UAnimInstanceBase::OnTankRotated(float RotateVal, APawn* Pawn)
 {
+	if (m_Pawn != Pawn)
+	{
+		return;
+	}
 	m_TankBodyPitch += RotateVal;
 	if (m_TankBodyPitch == 180.f || m_TankBodyPitch == -180.f)
 	{
