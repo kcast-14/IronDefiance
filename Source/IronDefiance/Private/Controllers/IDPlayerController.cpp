@@ -527,11 +527,13 @@ void AIDPlayerController::ToggleControlsMenu()
 {
 	if (bControlsMenuVisible)
 	{
-
+		TogglePauseMenu();
+		RemoveControlsMenu();
 	}
 	else
 	{
-
+		TogglePauseMenu();
+		DisplayControlsMenu();
 	}
 }
 
@@ -539,11 +541,13 @@ void AIDPlayerController::ToggleSettingsMenu()
 {
 	if (bSettingsMenuVisible)
 	{
-
+		TogglePauseMenu();
+		RemoveSettingsMenu();
 	}
 	else
 	{
-
+		TogglePauseMenu();
+		DisplaySettingsMenu();
 	}
 }
 
