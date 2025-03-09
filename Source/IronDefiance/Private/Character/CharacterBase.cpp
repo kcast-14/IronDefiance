@@ -264,6 +264,11 @@ void ACharacterBase::Attack()
 	}
 }
 
+void ACharacterBase::ActionSniperFire()
+{
+	Fire();
+}
+
 void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here

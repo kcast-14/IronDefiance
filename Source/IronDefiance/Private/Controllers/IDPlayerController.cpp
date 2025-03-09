@@ -1246,7 +1246,7 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 
 	if (m_Operator->IsPilotingTank())
 	{
-		m_Operator->GetTankToPilot()->Attack();
+		m_Operator->GetTankToPilot()->ActionSniperFire();
 		return;
 	}
 
