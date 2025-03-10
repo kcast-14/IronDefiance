@@ -53,6 +53,8 @@ public:
 
 	virtual void Attack();
 
+	virtual void ActionSniperFire();
+
 	virtual void Die();
 
 	UFUNCTION()
