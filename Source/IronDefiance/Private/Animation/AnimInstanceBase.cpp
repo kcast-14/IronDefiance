@@ -4,6 +4,7 @@
 #include "Animation/AnimInstanceBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/ArrowComponent.h"
 #include "Controllers/IDPlayerController.h"
 #include "Pawns/OperatorPawn.h"
 #include "Character/CharacterBase.h"
@@ -12,11 +13,6 @@
 
 void UAnimInstanceBase::NativeInitializeAnimation()
 {
-
-	if (m_Pawn == nullptr)
-	{
-		m_Pawn = TryGetPawnOwner();
-	}
 }
 
 void UAnimInstanceBase::NativeBeginPlay()
@@ -44,6 +40,8 @@ void UAnimInstanceBase::NativeBeginPlay()
 
 void UAnimInstanceBase::UpdateAnimationProperties()
 {
+
+	
 	if (m_Pawn == nullptr)
 	{
 		m_Pawn = TryGetPawnOwner();
@@ -128,14 +126,20 @@ void UAnimInstanceBase::UpdateAnimationProperties()
 	}
 }
 
-void UAnimInstanceBase::OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharacterBase* Tank)
+void UAnimInstanceBase::OnModeChanged(ECameraMode Mode)
 {
-	(m_Tank != Tank) ? m_Tank = Tank : m_Tank;
 	m_CurrentMode = Mode;
-	m_Pawn = NewOwner;
 }
 
-void UAnimInstanceBase::OnTankRotated(float RotateVal)
+void UAnimInstanceBase::OnTankRotated(float RotateVal, APawn* Pawn)
 {
-	m_CurrentTankRotation.Pitch = RotateVal;
+	if (m_Pawn != Pawn)
+	{
+		return;
+	}
+	m_TankBodyPitch += RotateVal;
+	if (m_TankBodyPitch == 180.f || m_TankBodyPitch == -180.f)
+	{
+		m_TankBodyPitch *= -1.f;
+	}
 }

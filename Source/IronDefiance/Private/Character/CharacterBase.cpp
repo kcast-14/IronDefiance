@@ -11,15 +11,18 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Controllers/IDPlayerController.h"
+#include "Controllers/IDAIController.h"
 #include "Enemy/Enemy.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameModes/IDGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameInstance/IDGameInstance.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Projectiles/ProjectileBase.h"
-#include "Controllers/IDPlayerController.h"
+#include "ProjectilePool.h"
 #include "AIController.h"
 
 
@@ -32,7 +35,7 @@ ACharacterBase::ACharacterBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.0f);
-	
+
 	m_SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	m_SpringArmComponent->SetupAttachment(GetRootComponent());
 	m_SpringArmComponent->SetRelativeLocation({ 0.f,0.f,20.f }); // {} are the equivalent of FVector()
@@ -49,12 +52,11 @@ ACharacterBase::ACharacterBase()
 	m_CameraComponent->FieldOfView = 90.f;
 	m_CameraComponent->bUsePawnControlRotation = true;
 
-
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	GetMesh()->SetupAttachment(GetCapsuleComponent());
+	GetMesh()->SetupAttachment(GetRootComponent());
 	GetMesh()->bCastDynamicShadow = true;
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	
 
 	m_CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Combat Sphere"));
 	m_CombatSphere->SetupAttachment(GetRootComponent());
@@ -69,11 +71,14 @@ ACharacterBase::ACharacterBase()
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
 }
 
 // Called when the game starts or when spawned
 void ACharacterBase::BeginPlay()
 {
+	GetMesh()->GetAnimInstance();
 	Super::BeginPlay();	
 	TMap<AFOBActor*, ETowerType> Towers = Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()))->GetAllTowers();
 	m_CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &ACharacterBase::OnCombatOverlapBegin);
@@ -87,6 +92,9 @@ void ACharacterBase::BeginPlay()
 	m_CurrentHealth = m_Stats.MaxHealth;
 
 	m_TankRotation = GetActorRotation();
+
+	m_AIController = Cast<AIDAIController>(GetController());
+	m_AIController->SetOwningActor<ACharacterBase>(this);
 }
 
 // Called every frame
@@ -94,7 +102,7 @@ void ACharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (m_CombatTarget)
+	if (m_CombatTarget && !IsPiloted())
 	{
 		Attack();
 	}
@@ -256,15 +264,17 @@ void ACharacterBase::Attack()
 	}
 }
 
+void ACharacterBase::ActionSniperFire()
+{
+	Fire();
+}
+
 void ACharacterBase::Fire()
 {
 	//Take care of some "thinking" code here
 
-	check(m_ProjectileClass); // All classes should have a projectile class set in BP
-
-	FVector BarrelSocketLocation = GetActorLocation(); // Temp Values
-	FRotator BarrelSocketRotation = GetActorRotation(); // Temp Values
-	BarrelSocketLocation += FVector(GetCapsuleComponent()->GetUnscaledCapsuleRadius(), 0.f, 0.f);
+	FVector BarrelSocketLocation = GetMesh()->GetSocketLocation("BarrelSocket");
+	FRotator BarrelSocketRotation = GetMesh()->GetSocketRotation("BarrelSocket");
 
 	if (GetWorld()) // If the world exists
 	{
@@ -272,11 +282,14 @@ void ACharacterBase::Fire()
 		SpawnParams.Owner = this;
 		SpawnParams.Instigator = GetInstigator();
 
-		m_Projectile = GetWorld()->SpawnActor<AProjectileBase>(m_ProjectileClass, BarrelSocketLocation, BarrelSocketRotation);
-		m_Projectile->AddDamageUpgrade(m_Stats.DamageAddition);
+		m_Projectile = GetGameInstance<UIDGameInstance>()->GetProjectilePool()->RequestProjectile(EProjPoolMethod::AutoRelease);
 
-		if (m_Projectile) // If the Projectile was successfully constructed and spawned
+
+		if (m_Projectile != nullptr) // If the Projectile was successfully retrieved from the pool
 		{
+			m_Projectile->AddDamageUpgrade(m_Stats.DamageAddition);
+			m_Projectile->SetActorLocation(BarrelSocketLocation);
+			m_Projectile->SetActorRotation(BarrelSocketRotation);
 			m_Projectile->SetInstigator(GetController());
 			m_Projectile->CollisionComponent->BodyInstance.SetCollisionProfileName(FName("PlayerProjectiles"));
 			FVector LaunchDirection = BarrelSocketRotation.Vector();
@@ -439,8 +452,8 @@ bool ACharacterBase::CanHitTarget()
 
 	FHitResult Result;
 
-	FVector StartLocation = GetActorLocation();
-	FRotator Rotation = GetActorRotation();
+	FVector StartLocation = GetMesh()->GetSocketLocation("BarrelSocket");
+	FRotator Rotation = GetMesh()->GetSocketRotation("BarrelSocket");;
 	FVector Direction = GetActorForwardVector();
 
 	FVector EndLocation = StartLocation + (Direction * CastLength);

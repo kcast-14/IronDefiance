@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "IDEnums.h"
+#include <functional>
 #include "ProjectileBase.generated.h"
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeactivateProjectile, AProjectileBase*, Proj);
 
 class USphereComponent;
 class UParticleSystem;
@@ -47,6 +51,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Particles")
 	UParticleSystem* HitWorldParticles;
 
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -54,7 +60,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 
 	void FireInDirection(const FVector& ShootDirection);
 
@@ -67,6 +72,19 @@ public:
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	FORCEINLINE void SetInstigator(AController* Inst) { m_FireInstigator = Inst; }
+
+	FOnDeactivateProjectile m_OnDeactivateProjectile;
+
+	using DeactivationFn = std::function<void(AProjectileBase*)>;
+
+	DeactivationFn BindedFunction;
+
+protected:
+	void Execute();
+	void BindFunction(DeactivationFn Func);
+
+	void UnbindFunction();
+
 
 private:
 

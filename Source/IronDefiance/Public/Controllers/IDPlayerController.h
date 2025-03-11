@@ -11,8 +11,8 @@
  * TODO: Organize this class a bit better
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnModeSwitch, ECameraMode, Mode, APawn*, Owner, ACharacterBase*, Tank);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRotate, float, RotateVal);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnModeSwitch, ECameraMode, Mode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnRotate, float, RotateVal, APawn*, Pawn);
 
 class AEnemy;
 class ACharacterBase;
@@ -97,6 +97,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Lose Screen Widget Instance"))
 	UUserWidget* m_LoseScreen;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Loading Screen Widget Class"))
+	TSubclassOf<UUserWidget> m_WLoadingScreen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Widgets", meta = (DisplayName = "Loading Screen Widget Instance"))
+	UUserWidget* m_LoadingScreen;
+
 
 	bool bHUDOverlayVisible = false;
 
@@ -129,6 +134,9 @@ public:
 	bool bLoseScreenVisible = false;
 
 	bool bWinScreenVisible = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bLoadingScreenVisible = false;
 
 	UPROPERTY()
 	FVector TankLocation;
@@ -183,6 +191,11 @@ public:
 	void RemoveLoseScreen();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void DisplayLoadingScreen();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
+	void RemoveLoadingScreen();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void DisplayMainMenu();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemoveMainMenu();
@@ -225,6 +238,9 @@ public:
 	void ToggleWinScreen();
 	UFUNCTION()
 	void ToggleLoseScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void ToggleLoadingScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void TogglePauseMenu();
@@ -306,6 +322,8 @@ public:
 	void Zoom(const FInputActionValue& Value);
 	UFUNCTION()
 	void Select(const FInputActionValue& Value);
+	UFUNCTION()
+	void Fire(const FInputActionValue& Value);
 
 
 
@@ -339,6 +357,8 @@ private:
 		UInputAction* m_ZoomAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Select Action"))
 		UInputAction* m_SelectAction = nullptr;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Fire Action"))
+		UInputAction* m_FireAction = nullptr;
 
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Operator", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Operator Pointer"))
 		AOperatorPawn* m_Operator;
@@ -347,7 +367,7 @@ private:
 		TArray<ACharacterBase*> m_Tanks;
 
 		UPROPERTY()
-		int m_CurrentControlledTank = 0;
+		int m_CurrentControlledTank = -1;
 
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pause Sound"))
 		USoundCue* m_Pause;
@@ -360,5 +380,8 @@ private:
 	void PlaceTank(FVector Location, FVector Direction);
 
 	void EnterActionMode();
+
+	bool IsUsingGamepad();
+
 
 };

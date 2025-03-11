@@ -21,6 +21,10 @@ struct FTankStats
 	float FireRate = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
 	float DamageAddition = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
+	float Mobility = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats")
+	float ReloadSpeed = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats|Tank Stats|Ammo")
 	float MaxAPRounds = 100.f;

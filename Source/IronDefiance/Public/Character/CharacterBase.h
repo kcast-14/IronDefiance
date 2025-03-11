@@ -12,7 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTankDestroyed, ACharacterBase*, Tank);
 
 
-class AAIController;
+class AIDAIController;
 class AFOBActor;
 class AEnemy;
 class AAIController;
@@ -53,6 +53,8 @@ public:
 
 	virtual void Attack();
 
+	virtual void ActionSniperFire();
+
 	virtual void Die();
 
 	UFUNCTION()
@@ -88,7 +90,7 @@ public:
 	FORCEINLINE virtual float GetCurrentExplosiveRounds() { return m_CurrentExplosiveRounds; }
 	FORCEINLINE virtual float GetCurrentHeatRounds() { return m_CurrentHeatRounds; }
 	FORCEINLINE virtual FTankStats GetStats() { return m_Stats; }
-
+	FORCEINLINE virtual ETankType GetType() { return m_TankType; }
 
 	FORCEINLINE virtual void SetCurrentHealth(float Value) { m_CurrentHealth = Value; }
 	FORCEINLINE virtual void SetCurrentAPRounds(float Value) { m_CurrentAPRounds = Value; }
@@ -96,6 +98,7 @@ public:
 	FORCEINLINE virtual void SetCurrentExplosiveRounds(float Value) { m_CurrentExplosiveRounds = Value; }
 	FORCEINLINE virtual void SetCurrentHeatRounds(float Value) { m_CurrentHeatRounds = Value; }
 	FORCEINLINE virtual void SetStats(FTankStats Stats) { m_Stats = Stats; }
+	FORCEINLINE virtual void SetBeingPiloted(bool Value) { bIsBeingPiloted = Value; }
 
 
 public:
@@ -130,6 +133,8 @@ private:
 	void InterpToTarget();
 
 	void DestroyTank();
+
+	bool IsPiloted() { return bIsBeingPiloted; }
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats", meta = (AllowPrivateAccess = "true"), meta = (DisplayName="Max Stat Values"))
@@ -153,7 +158,7 @@ private:
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "AI Controller"))
-	AAIController* m_AIController = nullptr;
+	AIDAIController* m_AIController = nullptr;
 	
 	TArray<AEnemy*> m_TargetsInRange;
 
@@ -186,6 +191,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FPSCamera", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Camera Speed"))
 	float m_CameraSpeed = 10.f;
+
+	UPROPERTY()
+	bool bIsBeingPiloted = false;
 
 	UPROPERTY()
 	AFPSPawn* m_FPSPawn;

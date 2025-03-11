@@ -30,10 +30,12 @@ public:
 	void UpdateAnimationProperties();
 
 	UFUNCTION()
-	void OnModeChanged(ECameraMode Mode, APawn* NewOwner, ACharacterBase* Tank);
+	void OnModeChanged(ECameraMode Mode);
 
 	UFUNCTION()
-	void OnTankRotated(float RotateVal);
+	void OnTankRotated(float RotateVal, APawn* Pawn);
+
+	FORCEINLINE void SetPawn(APawn* NewPawn) { m_Pawn = NewPawn; }
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName="MovementSpeed"))
@@ -64,8 +66,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Pitch (Y-Axis)"))
 	float m_Pitch = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Pitch (Y-Axis)"))
-	float m_TankPitch = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Tank Body Pitch (Y-Axis)"))
+	float m_TankBodyPitch = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Roll (X-Axis)"))
 	float m_Roll = 0.f;

@@ -11,10 +11,13 @@
  * 
  */
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelSwitch);
+
 class AWave;
 class UIDSaveGame;
 class USettingsDataTable;
 class UProjectilePool;
+class AProjectileBase;
 
 UCLASS()
 class IRONDEFIANCE_API UIDGameInstance : public UGameInstance
@@ -63,6 +66,13 @@ public:
 
 	FORCEINLINE USettingsDataTable* GetUserSettings() { return m_UserSettings; }
 
+	FORCEINLINE UProjectilePool* GetProjectilePool() { return m_ProjPool; }
+
+public:
+
+	UPROPERTY(VisibleAnywhere, BlueprintCallable, Category="Events")
+	FOnLevelSwitch m_OnLevelSwitch;
+
 protected:
 	virtual void Init() override;
 	virtual void PostInitProperties() override;
@@ -80,8 +90,12 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AV", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "User Settings"))
 	USettingsDataTable* m_UserSettings;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Projectile", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Projectile Class"))
+	TSubclassOf<AProjectileBase> m_ProjectileClass;
+
+	UPROPERTY(VisibleAnywhere)
 	UProjectilePool* m_ProjPool;
+
 
 	UPROPERTY(VisibleAnywhere, Category = "Save", meta = (DisplayName = "Save Array"))
 	TArray<UIDSaveGame*> m_SaveArray;
