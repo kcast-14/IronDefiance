@@ -294,7 +294,7 @@ void AEnemy::Die()
 	m_WavePtr->OnEnemyDefeated();
 
 	Cast<AIDPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0))->RemoveEnemyLocation(this);
-	Cast<AIDGameModeBase>(UGameplayStatics::GetGameInstance(this))->IncrementScrap(m_ScrapsToDrop);
+	Cast<AIDGameModeBase>(UGameplayStatics::GetGameMode(this))->IncrementScrap(m_ScrapsToDrop);
 	Destroy();
 }
 
