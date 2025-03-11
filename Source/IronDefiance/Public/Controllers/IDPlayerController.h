@@ -322,6 +322,8 @@ public:
 	void Zoom(const FInputActionValue& Value);
 	UFUNCTION()
 	void Select(const FInputActionValue& Value);
+	UFUNCTION()
+	void Fire(const FInputActionValue& Value);
 
 
 
@@ -355,6 +357,8 @@ private:
 		UInputAction* m_ZoomAction = nullptr;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Select Action"))
 		UInputAction* m_SelectAction = nullptr;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Fire Action"))
+		UInputAction* m_FireAction = nullptr;
 
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Operator", meta = (AllowPrivateAccess = "true"), meta = (DisplayName = "Operator Pointer"))
 		AOperatorPawn* m_Operator;
@@ -376,5 +380,8 @@ private:
 	void PlaceTank(FVector Location, FVector Direction);
 
 	void EnterActionMode();
+
+	bool IsUsingGamepad();
+
 
 };

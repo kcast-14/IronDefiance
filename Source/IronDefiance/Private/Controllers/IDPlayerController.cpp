@@ -9,6 +9,7 @@
 #include "Character/CharacterBase.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/InputDeviceSubsystem.h"
 #include "Enemy/Enemy.h"
 #include "GameInstance/IDGameInstance.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -844,6 +845,7 @@ void AIDPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(m_SwitchToSniper, ETriggerEvent::Triggered, this, &AIDPlayerController::SwitchToSniper);
 		EnhancedInputComponent->BindAction(m_ZoomAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Zoom);
 		EnhancedInputComponent->BindAction(m_SelectAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Select); //Name is subject to change
+		EnhancedInputComponent->BindAction(m_FireAction, ETriggerEvent::Triggered, this, &AIDPlayerController::Fire);
 
 		//m_PlayerMappingContext->GetMappings()[0].
 
@@ -956,7 +958,7 @@ void AIDPlayerController::Move(const FInputActionValue& Value)
 			break;
 		}
 		}
-		if (IsInputKeyDown(EKeys::A) || IsInputKeyDown(EKeys::D))
+		if (IsInputKeyDown(EKeys::A) || IsInputKeyDown(EKeys::D) || IsInputKeyDown(EKeys::Gamepad_LeftStick_Left) || IsInputKeyDown(EKeys::Gamepad_LeftStick_Right))
 		{
 			break;
 		}
@@ -1290,6 +1292,25 @@ void AIDPlayerController::Select(const FInputActionValue& Value)
 	}
 }
 
+void AIDPlayerController::Fire(const FInputActionValue& Value)
+{
+	switch (m_Operator->GetCameraMode())
+	{
+	//We in theory shouldn't ever hit these two cases, so if we do then you need to follow the stack trace back to figure out how this was even possible.
+	case ECameraMode::CM_ActionMode:
+	case ECameraMode::CM_SniperMode:
+	{
+		m_Operator->GetTankToPilot()->ActionSniperFire();
+		break;
+
+	}
+	default:
+	{
+		break;
+	}
+	}
+}
+
 void AIDPlayerController::PlaceTank(FVector Location, FVector Direction)
 {
 	ACharacterBase* PlacedTank = Cast<ACharacterBase>(m_Operator->PlaceTank(Location, Direction));
@@ -1336,6 +1357,13 @@ void AIDPlayerController::EnterActionMode()
 	}
 	}
 
+}
+
+bool AIDPlayerController::IsUsingGamepad()
+{                              
+	UInputDeviceSubsystem* IDS = UInputDeviceSubsystem::Get();
+
+	return IDS->GetMostRecentlyUsedHardwareDevice(GetPlatformUserId()).PrimaryDeviceType == EHardwareDevicePrimaryType::Gamepad;
 }
 
 
